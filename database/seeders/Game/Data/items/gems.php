@@ -1,0 +1,10 @@
+<?php
+
+return [
+    ['id' => 146, 'name' => '攻击宝石', 'type' => 'gem', 'sub_type' => null, 'base_stats' => [], 'required_level' => 1, 'sockets' => 0, 'gem_stats' => ['attack' => 4], 'asset_key' => 'attack-gem', 'icon_prompt' => 'RPG item icon, red attack gem, ruby crystal, glowing red, detailed game item, soft shading, square, transparent background'],
+    ['id' => 147, 'name' => '防御宝石', 'type' => 'gem', 'sub_type' => null, 'base_stats' => [], 'required_level' => 1, 'sockets' => 0, 'gem_stats' => ['defense' => 3], 'asset_key' => 'defense-gem', 'icon_prompt' => 'RPG item icon, blue defense gem, sapphire crystal, glowing blue, detailed game item, soft shading, square, transparent background'],
+    ['id' => 148, 'name' => '生命宝石', 'type' => 'gem', 'sub_type' => null, 'base_stats' => [], 'required_level' => 1, 'sockets' => 0, 'gem_stats' => ['max_hp' => 10], 'asset_key' => 'hp-gem', 'icon_prompt' => 'RPG item icon, green life gem, emerald crystal, glowing green, detailed game item, soft shading, square, transparent background'],
+    ['id' => 149, 'name' => '法力宝石', 'type' => 'gem', 'sub_type' => null, 'base_stats' => [], 'required_level' => 1, 'sockets' => 0, 'gem_stats' => ['max_mana' => 8], 'asset_key' => 'mana-gem', 'icon_prompt' => 'RPG item icon, cyan mana gem, aquamarine crystal, glowing cyan, detailed game item, soft shading, square, transparent background'],
+    ['id' => 150, 'name' => '暴击宝石', 'type' => 'gem', 'sub_type' => null, 'base_stats' => [], 'required_level' => 5, 'sockets' => 0, 'gem_stats' => ['crit_rate' => 0.0175], 'asset_key' => 'crit-gem', 'icon_prompt' => 'RPG item icon, yellow crit gem, topaz crystal, electric glow, detailed game item, soft shading, square, transparent background'],
+    ['id' => 151, 'name' => '暴伤宝石', 'type' => 'gem', 'sub_type' => null, 'base_stats' => [], 'required_level' => 5, 'sockets' => 0, 'gem_stats' => ['crit_damage' => 0.075], 'asset_key' => 'crit-damage-gem', 'icon_prompt' => 'RPG item icon, purple crit damage gem, amethyst crystal, intense glow, detailed game item, soft shading, square, transparent background'],
+];
