@@ -30,7 +30,7 @@ class GameCharacterService
      */
     public function getCharacterList(int $userId): array
     {
-        $cacheKey = self::CACHE_PREFIX . "list:{$userId}";
+        $cacheKey = self::CACHE_PREFIX."list:{$userId}";
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($userId) {
             $characters = GameCharacter::query()
@@ -40,9 +40,11 @@ class GameCharacterService
             $characters->each(fn ($character) => $character->reconcileLevelFromExperience());
 
             return [
+                // Cache only scalar arrays. Cached Collection objects are restored as
+                // __PHP_Incomplete_Class by Laravel's safe Redis unserializer.
                 'characters' => $characters->map(fn ($c) => $c->only([
                     'id', 'name', 'class', 'level', 'experience', 'copper', 'is_fighting', 'difficulty_tier',
-                ])),
+                ]))->values()->all(),
                 'experience_table' => config('game.experience_table', []),
             ];
         });
@@ -319,6 +321,6 @@ class GameCharacterService
      */
     private function clearCharacterCache(int $userId): void
     {
-        Cache::forget(self::CACHE_PREFIX . "list:{$userId}");
+        Cache::forget(self::CACHE_PREFIX."list:{$userId}");
     }
 }

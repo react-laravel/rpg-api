@@ -6,6 +6,8 @@ $reverbPortRaw = env('REVERB_PORT');
 $reverbPort = is_numeric($reverbPortRaw) && (int) $reverbPortRaw > 0
     ? (int) $reverbPortRaw
     : $defaultReverbPort;
+$frontendUrl = (string) env('FRONTEND_URL', 'https://rpg.dogeow.com');
+$frontendHost = parse_url($frontendUrl, PHP_URL_HOST) ?: $frontendUrl;
 
 return [
 
@@ -89,7 +91,8 @@ return [
                     'scheme' => $reverbScheme,
                     'useTLS' => $reverbScheme === 'https',
                 ],
-                'allowed_origins' => [env('FRONTEND_URL', 'https://rpg.dogeow.com')],
+                // Reverb compares this list with the hostname parsed from the Origin header.
+                'allowed_origins' => [$frontendHost],
                 'ping_interval' => env('REVERB_APP_PING_INTERVAL', 60),
                 'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
                 'max_message_size' => env('REVERB_APP_MAX_MESSAGE_SIZE', 100_000),
