@@ -7,7 +7,7 @@ return SkillTreeBuilder::merge(
         'description' => '中耗单体火焰弹，伤害高于冰箭；强化后保持单体爆发定位',
         'base_damage' => 16,
         'mana_cost' => 10,
-        'cooldown' => 1,
+        'cooldown' => 0,
         'icon_prompt' => 'RPG skill icon, fireball, flaming orb, magic projectile, wizard spell, detailed fantasy icon, square, dark background',
     ], '强化火球术', [
         'description' => '单体伤害 +30%',
