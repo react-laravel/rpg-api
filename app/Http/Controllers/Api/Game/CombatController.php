@@ -64,11 +64,15 @@ class CombatController extends Controller
 
             $redisKey = AutoCombatRoundJob::redisKey($character->id);
             if (AutoCombatRoundJob::hasAutoCombatPayload(Redis::get($redisKey))) {
+                AutoCombatRoundJob::resume($character->id, $skillIds);
+
                 return $this->success(['message' => '自动战斗已在进行中，结果将通过 WebSocket 推送']);
             }
 
             if (! AutoCombatRoundJob::tryAcquireAutoCombat($character->id, $skillIds)) {
-                return $this->error('自动战斗已在运行中，请先停止当前战斗');
+                AutoCombatRoundJob::dispatch($character->id, $skillIds);
+
+                return $this->success(['message' => '自动战斗已在进行中，结果将通过 WebSocket 推送']);
             }
 
             AutoCombatRoundJob::dispatch($character->id, $skillIds);

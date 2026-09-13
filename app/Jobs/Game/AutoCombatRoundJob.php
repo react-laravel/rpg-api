@@ -12,9 +12,11 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use InvalidArgumentException;
 use RuntimeException;
+use Throwable;
 
 class AutoCombatRoundJob implements ShouldQueue
 {
@@ -54,6 +56,8 @@ class AutoCombatRoundJob implements ShouldQueue
         $lockAcquired = $lock->get();
 
         if (! $lockAcquired) {
+            self::dispatch($this->characterId, [])->delay(now()->addSeconds(self::ROUND_INTERVAL_SECONDS));
+
             return;
         }
 
@@ -73,7 +77,10 @@ class AutoCombatRoundJob implements ShouldQueue
 
         try {
             // 防止历史遗留或重复排队的 job 在间隔窗口内连续推进战斗。
-            if (self::shouldWaitForNextRound($data)) {
+            $waitSeconds = self::waitSecondsBeforeNextTick($data);
+            if ($waitSeconds > 0) {
+                self::dispatch($this->characterId, [])->delay(now()->addSeconds($waitSeconds));
+
                 return;
             }
 
@@ -139,6 +146,12 @@ class AutoCombatRoundJob implements ShouldQueue
                 self::dispatch($this->characterId, [])->delay($nextRoundAt);
             }
         } catch (RuntimeException|InvalidArgumentException $e) {
+            $this->broadcastAutoStoppedAndCleanup($character, $e, $key);
+        } catch (Throwable $e) {
+            Log::error('自动战斗推进失败', [
+                'character_id' => $this->characterId,
+                'exception' => $e,
+            ]);
             $this->broadcastAutoStoppedAndCleanup($character, $e, $key);
         } finally {
             $lock->release();
@@ -250,13 +263,39 @@ class AutoCombatRoundJob implements ShouldQueue
     }
 
     /**
+     * 已有自动战斗 key 时补派任务，避免部署重启后 Redis 锁还在、队列却丢了下一拍。
+     */
+    public static function resume(int $characterId, ?array $skillIds): void
+    {
+        $key = self::redisKey($characterId);
+        $payload = Redis::get($key);
+        if (self::hasAutoCombatPayload($payload)) {
+            $data = self::decodePayload($payload);
+            $data['skill_ids'] = $skillIds;
+            self::writePayload($key, $data);
+        }
+
+        self::dispatch($characterId, $skillIds);
+    }
+
+    /**
+     * 距下次推进的等待秒数。过期或间隔异常偏大视为卡死，立即执行。
+     *
      * @param  array<string, mixed>  $payload
      */
-    private static function shouldWaitForNextRound(array $payload): bool
+    public static function waitSecondsBeforeNextTick(array $payload, ?int $nowTimestamp = null): int
     {
         $nextRoundAt = $payload[self::NEXT_ROUND_AT_KEY] ?? null;
+        if (! is_numeric($nextRoundAt)) {
+            return 0;
+        }
 
-        return is_numeric($nextRoundAt) && (int) $nextRoundAt > now()->getTimestamp();
+        $wait = (int) $nextRoundAt - ($nowTimestamp ?? time());
+        if ($wait <= 0 || $wait > self::ROUND_INTERVAL_SECONDS + 2) {
+            return 0;
+        }
+
+        return $wait;
     }
 
     private function broadcaster(): GameCombatBroadcaster
