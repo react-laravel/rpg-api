@@ -223,10 +223,30 @@ class GameCharacter extends Model
     }
 
     /**
-     * 获取升级所需经验
+     * 获取角色最高等级
+     */
+    public function getMaxCharacterLevel(): int
+    {
+        return (int) config('game.max_character_level', 200);
+    }
+
+    /**
+     * 是否已达最高等级
+     */
+    public function isMaxLevel(): bool
+    {
+        return $this->level >= $this->getMaxCharacterLevel();
+    }
+
+    /**
+     * 获取升级所需经验(累计阈值)。满级时返回 PHP_INT_MAX，避免误判可继续升级。
      */
     public function getExperienceToNextLevel(): int
     {
+        if ($this->isMaxLevel()) {
+            return PHP_INT_MAX;
+        }
+
         $table = config('game.experience_table', []);
 
         return $table[$this->level + 1] ?? $this->calculateExperienceThresholdForLevel($this->level + 1);
@@ -239,7 +259,7 @@ class GameCharacter extends Model
     {
         $table = config('game.experience_table', []);
 
-        return $table[$this->level] ?? 0;
+        return $table[$this->level] ?? $this->calculateExperienceThresholdForLevel($this->level);
     }
 
     private function calculateExperienceThresholdForLevel(int $level): int
@@ -260,8 +280,9 @@ class GameCharacter extends Model
     public function reconcileLevelFromExperience(): bool
     {
         $levelsGained = 0;
+        $maxLevel = $this->getMaxCharacterLevel();
 
-        while ($this->experience >= $this->getExperienceToNextLevel()) {
+        while ($this->level < $maxLevel && $this->experience >= $this->getExperienceToNextLevel()) {
             $this->level++;
             $this->skill_points += config('game.skill_points_per_level', 1);
             $this->stat_points += config('game.stat_points_per_level', 1);
@@ -284,8 +305,9 @@ class GameCharacter extends Model
     {
         $this->experience += $amount;
         $levelsGained = 0;
+        $maxLevel = $this->getMaxCharacterLevel();
 
-        while ($this->experience >= $this->getExperienceToNextLevel()) {
+        while ($this->level < $maxLevel && $this->experience >= $this->getExperienceToNextLevel()) {
             $this->level++;
             $this->skill_points += config('game.skill_points_per_level', 1);
             $this->stat_points += config('game.stat_points_per_level', 1);

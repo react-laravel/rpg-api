@@ -41,6 +41,7 @@ class CharacterController extends Controller
 
         return $this->success(['character' => $result['character'] ?? null] + [
             'experience_table' => $result['experience_table'] ?? [],
+            'max_character_level' => $result['max_character_level'] ?? (int) config('game.max_character_level', 200),
             'combat_stats' => $result['combat_stats'] ?? [],
             'stats_breakdown' => $result['stats_breakdown'] ?? [],
             'equipped_items' => $result['equipped_items'] ?? [],
