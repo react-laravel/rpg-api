@@ -132,19 +132,7 @@ class AutoCombatRoundJob implements ShouldQueue
                 return;
             }
 
-            // 战斗推进后只补 next_round_at，重新读取 Redis，避免覆盖战斗中途更新的 skill_ids。
-            $afterPayload = Redis::get($key);
-            if (self::hasAutoCombatPayload($afterPayload)) {
-                $nextRoundAt = now()->addSeconds(self::ROUND_INTERVAL_SECONDS);
-                $current = self::decodePayload($afterPayload);
-                if ($current === []) {
-                    $current = $latestPayloadData;
-                }
-                $current[self::NEXT_ROUND_AT_KEY] = $nextRoundAt->getTimestamp();
-                self::writePayload($key, $current);
-                // 延迟 3 秒后调度下一个 job（不阻塞 Worker）
-                self::dispatch($this->characterId, [])->delay($nextRoundAt);
-            }
+            self::scheduleNextTick($this->characterId);
         } catch (RuntimeException|InvalidArgumentException $e) {
             $this->broadcastAutoStoppedAndCleanup($character, $e, $key);
         } catch (Throwable $e) {
@@ -229,7 +217,10 @@ class AutoCombatRoundJob implements ShouldQueue
      */
     public static function tryAcquireAutoCombat(int $characterId, ?array $skillIds): bool
     {
-        $payload = json_encode(['skill_ids' => $skillIds]);
+        $payload = json_encode([
+            'skill_ids' => $skillIds,
+            self::NEXT_ROUND_AT_KEY => time() + self::ROUND_INTERVAL_SECONDS,
+        ]);
 
         return (bool) Redis::set(
             self::redisKey($characterId),
@@ -276,6 +267,41 @@ class AutoCombatRoundJob implements ShouldQueue
         }
 
         self::dispatch($characterId, $skillIds);
+    }
+
+    /**
+     * 标记正在推进，避免并发开战请求同时打出两下。
+     */
+    public static function markTickInProgress(int $characterId, ?array $skillIds): void
+    {
+        $key = self::redisKey($characterId);
+        $payload = Redis::get($key);
+        $data = self::hasAutoCombatPayload($payload) ? self::decodePayload($payload) : [];
+        $data['skill_ids'] = $skillIds;
+        $data[self::NEXT_ROUND_AT_KEY] = time() + self::ROUND_INTERVAL_SECONDS;
+        self::writePayload($key, $data);
+    }
+
+    /**
+     * 写入下次推进时间并延迟派发，避免开战接口同步打完第一下后又立刻再打一次。
+     */
+    public static function scheduleNextTick(int $characterId, ?array $skillIds = null, bool $replaceSkillIds = false): void
+    {
+        $key = self::redisKey($characterId);
+        $payload = Redis::get($key);
+        if (! self::hasAutoCombatPayload($payload)) {
+            return;
+        }
+
+        $data = self::decodePayload($payload);
+        if ($replaceSkillIds) {
+            $data['skill_ids'] = $skillIds;
+        }
+
+        $nextRoundAt = now()->addSeconds(self::ROUND_INTERVAL_SECONDS);
+        $data[self::NEXT_ROUND_AT_KEY] = $nextRoundAt->getTimestamp();
+        self::writePayload($key, $data);
+        self::dispatch($characterId, [])->delay($nextRoundAt);
     }
 
     /**

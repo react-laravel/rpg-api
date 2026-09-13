@@ -105,6 +105,61 @@ class GameCombatService
     }
 
     /**
+     * 开始自动战斗：同步打出第一下，再排队后续心跳。
+     *
+     * @param  int[]|null  $skillIds
+     * @return array<string, mixed>
+     */
+    public function startAutoCombat(GameCharacter $character, ?array $skillIds = null): array
+    {
+        $redisKey = AutoCombatRoundJob::redisKey($character->id);
+        $existing = Redis::get($redisKey);
+
+        if (AutoCombatRoundJob::hasAutoCombatPayload($existing)) {
+            $data = is_string($existing) ? json_decode($existing, true) : [];
+            $data = is_array($data) ? $data : [];
+            $wait = AutoCombatRoundJob::waitSecondsBeforeNextTick($data);
+            if ($wait > 0) {
+                AutoCombatRoundJob::resume($character->id, $skillIds);
+
+                return [
+                    'already_running' => true,
+                    'message' => '自动战斗已在进行中，结果将通过 WebSocket 推送',
+                ];
+            }
+        } elseif (! AutoCombatRoundJob::tryAcquireAutoCombat($character->id, $skillIds)) {
+            AutoCombatRoundJob::resume($character->id, $skillIds);
+
+            return [
+                'already_running' => true,
+                'message' => '自动战斗已在进行中，结果将通过 WebSocket 推送',
+            ];
+        }
+
+        AutoCombatRoundJob::markTickInProgress($character->id, $skillIds);
+
+        try {
+            $result = $this->executeRound($character, $skillIds);
+        } catch (\Throwable $e) {
+            Redis::del($redisKey);
+            $character->is_fighting = false;
+            $character->save();
+
+            throw $e;
+        }
+
+        if (! empty($result['defeat']) || ! empty($result['auto_stopped'])) {
+            Redis::del($redisKey);
+
+            return $result;
+        }
+
+        AutoCombatRoundJob::scheduleNextTick($character->id, $skillIds, true);
+
+        return $result;
+    }
+
+    /**
      * 获取战斗状态
      *
      * @param  GameCharacter  $character  角色实例

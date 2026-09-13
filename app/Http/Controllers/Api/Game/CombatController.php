@@ -11,6 +11,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use InvalidArgumentException;
+use RuntimeException;
 use Throwable;
 
 class CombatController extends Controller
@@ -62,28 +64,17 @@ class CombatController extends Controller
                 $skillIds = is_array($rawSkillIds) ? array_map('intval', array_values($rawSkillIds)) : [];
             }
 
-            $redisKey = AutoCombatRoundJob::redisKey($character->id);
-            if (AutoCombatRoundJob::hasAutoCombatPayload(Redis::get($redisKey))) {
-                AutoCombatRoundJob::resume($character->id, $skillIds);
+            $result = $this->combatService->startAutoCombat($character, $skillIds);
 
-                return $this->success(['message' => '自动战斗已在进行中，结果将通过 WebSocket 推送']);
-            }
-
-            if (! AutoCombatRoundJob::tryAcquireAutoCombat($character->id, $skillIds)) {
-                AutoCombatRoundJob::dispatch($character->id, $skillIds);
-
-                return $this->success(['message' => '自动战斗已在进行中，结果将通过 WebSocket 推送']);
-            }
-
-            AutoCombatRoundJob::dispatch($character->id, $skillIds);
-
-            return $this->success(['message' => '自动战斗已开始，结果将通过 WebSocket 推送']);
+            return $this->success($result);
         } catch (GameException $e) {
+            return $this->error($e->getMessage());
+        } catch (InvalidArgumentException|RuntimeException $e) {
             return $this->error($e->getMessage());
         } catch (Throwable $e) {
             Log::error('开始战斗失败', ['exception' => $e]);
 
-            return $this->error('开始战斗失败，请稍后重试');
+            return $this->error($e->getMessage() !== '' ? $e->getMessage() : '开始战斗失败，请稍后重试');
         }
     }
 
