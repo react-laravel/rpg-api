@@ -14,7 +14,7 @@ class CombatSkillSelectorTest extends TestCase
             (object) ['skill' => (object) ['id' => 2]],
         ]);
 
-        $filtered = (new CombatSkillSelector())->restrictActiveSkills($skills, []);
+        $filtered = (new CombatSkillSelector)->restrictActiveSkills($skills, []);
 
         $this->assertCount(0, $filtered);
     }
@@ -26,7 +26,7 @@ class CombatSkillSelectorTest extends TestCase
             (object) ['skill' => (object) ['id' => 2]],
         ]);
 
-        $filtered = (new CombatSkillSelector())->restrictActiveSkills($skills, [2]);
+        $filtered = (new CombatSkillSelector)->restrictActiveSkills($skills, [2]);
 
         $this->assertSame([2], $filtered->pluck('skill.id')->all());
     }
@@ -38,7 +38,7 @@ class CombatSkillSelectorTest extends TestCase
             (object) ['skill' => (object) ['id' => 2]],
         ]);
 
-        $filtered = (new CombatSkillSelector())->restrictActiveSkills($skills, null);
+        $filtered = (new CombatSkillSelector)->restrictActiveSkills($skills, null);
 
         $this->assertCount(2, $filtered);
     }
@@ -79,5 +79,19 @@ class CombatSkillSelectorTest extends TestCase
 
         $this->assertSame([], $selector->remainingCooldowns(null));
         $this->assertSame([], $selector->tickRemainingCooldowns(null));
+    }
+
+    public function test_cooldown_one_skips_the_next_pulse(): void
+    {
+        $selector = new CombatSkillSelector;
+
+        $afterCast = $selector->cooldownsAfterPulse([], 7, 1);
+        $this->assertSame([7 => 1], $afterCast);
+
+        $afterWait = $selector->cooldownsAfterPulse($afterCast, null, 0);
+        $this->assertSame([], $afterWait);
+
+        $afterRecast = $selector->cooldownsAfterPulse($afterWait, 7, 1);
+        $this->assertSame([7 => 1], $afterRecast);
     }
 }

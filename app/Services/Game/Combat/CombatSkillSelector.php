@@ -4,6 +4,7 @@ namespace App\Services\Game\Combat;
 
 use App\Models\Game\GameCharacter;
 use App\Models\Game\GameCharacterSkill;
+use Illuminate\Support\Collection;
 
 /**
  * 战斗技能选择器：智能选择最佳技能
@@ -33,7 +34,7 @@ class CombatSkillSelector
     }
 
     /**
-     * 每次战斗推进先把剩余冷却减 1，归零后可再次释放。
+     * 把未就绪技能的剩余冷却减 1；归零后不再出现在结果里。
      *
      * @param  array<int|string, mixed>|null  $skillCooldowns
      * @return array<int, int>
@@ -53,6 +54,28 @@ class CombatSkillSelector
     }
 
     /**
+     * 本拍能否施放看拍前剩余；拍末其它技能减 1，刚施放的写入完整冷却且本拍不再减。
+     * 因此 cooldown=1 会空一拍，而不是打完立刻又能打、界面却一直显示 1。
+     *
+     * @param  array<int|string, mixed>|null  $remainingAtStart
+     * @return array<int, int>
+     */
+    public function cooldownsAfterPulse(?array $remainingAtStart, ?int $usedSkillId, int $appliedCooldown): array
+    {
+        $newCooldowns = $this->tickRemainingCooldowns($remainingAtStart);
+        if ($usedSkillId === null) {
+            return $newCooldowns;
+        }
+        if ($appliedCooldown > 0) {
+            $newCooldowns[$usedSkillId] = $appliedCooldown;
+        } else {
+            unset($newCooldowns[$usedSkillId]);
+        }
+
+        return $newCooldowns;
+    }
+
+    /**
      * 解析本次战斗推进使用的技能(蓝量、冷却、单体/群体)
      * 智能选择：根据怪物血量和数量、技能伤害和消耗来决定使用最佳技能
      *
@@ -67,7 +90,7 @@ class CombatSkillSelector
         $isAoeSkill = false;
         $skillDamage = 0;
         $skillsUsedThisRound = [];
-        $newCooldowns = $this->tickRemainingCooldowns($skillCooldowns);
+        $remainingAtStart = $this->remainingCooldowns($skillCooldowns);
 
         $learnedSkills = $character->skills()
             ->with('skill')
@@ -95,7 +118,7 @@ class CombatSkillSelector
         foreach ($activeSkills as $charSkill) {
             /** @var GameCharacterSkill $charSkill */
             $skill = $charSkill->skill;
-            $remainingCooldown = $newCooldowns[$skill->id] ?? 0;
+            $remainingCooldown = $remainingAtStart[$skill->id] ?? 0;
 
             if ($currentMana >= $skill->mana_cost && $remainingCooldown <= 0) {
                 $passiveEffects = $this->getPassiveEffectsForSkill($skill, $passiveSkills);
@@ -119,7 +142,10 @@ class CombatSkillSelector
         }
 
         if (empty($availableSkills)) {
-            return $this->buildNoSkillRoundResult($currentMana, $newCooldowns);
+            return $this->buildNoSkillRoundResult(
+                $currentMana,
+                $this->cooldownsAfterPulse($remainingAtStart, null, 0)
+            );
         }
 
         // 智能选择最佳技能
@@ -135,11 +161,11 @@ class CombatSkillSelector
             $skill = $selectedSkill['skill'];
             $skillDamage = $selectedSkill['damage'];
             $currentMana -= $selectedSkill['mana_cost'];
-            if ($selectedSkill['cooldown'] > 0) {
-                $newCooldowns[$skill->id] = $selectedSkill['cooldown'];
-            } else {
-                unset($newCooldowns[$skill->id]);
-            }
+            $newCooldowns = $this->cooldownsAfterPulse(
+                $remainingAtStart,
+                (int) $skill->id,
+                (int) $selectedSkill['cooldown']
+            );
             $isAoeSkill = $selectedSkill['is_aoe'];
             $skillsUsedThisRound[] = [
                 'skill_id' => $skill->id,
@@ -160,7 +186,10 @@ class CombatSkillSelector
             ];
         }
 
-        return $this->buildNoSkillRoundResult($currentMana, $newCooldowns);
+        return $this->buildNoSkillRoundResult(
+            $currentMana,
+            $this->cooldownsAfterPulse($remainingAtStart, null, 0)
+        );
     }
 
     /**
@@ -251,9 +280,9 @@ class CombatSkillSelector
     /**
      * 前端指定的自动施法列表：null 表示不限制；[] 表示关闭全部主动技能。
      *
-     * @param  \Illuminate\Support\Collection<int, GameCharacterSkill>  $activeSkills
+     * @param  Collection<int, GameCharacterSkill>  $activeSkills
      * @param  int[]|null  $requestedSkillIds
-     * @return \Illuminate\Support\Collection<int, GameCharacterSkill>
+     * @return Collection<int, GameCharacterSkill>
      */
     public function restrictActiveSkills($activeSkills, ?array $requestedSkillIds)
     {
