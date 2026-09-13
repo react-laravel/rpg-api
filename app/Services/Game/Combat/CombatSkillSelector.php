@@ -13,11 +13,12 @@ class CombatSkillSelector
     /**
      * 冷却存剩余战斗推进次数。旧数据曾存到期回合号，用 combat_rounds 游标换算。
      *
-     * @param  array<int|string, mixed>  $stored
+     * @param  array<int|string, mixed>|null  $stored
      * @return array<int, int>
      */
-    public function remainingCooldowns(array $stored, int $legacyRoundCursor = 0): array
+    public function remainingCooldowns(?array $stored, int $legacyRoundCursor = 0): array
     {
+        $stored ??= [];
         $remaining = [];
         foreach ($stored as $skillId => $value) {
             $left = $legacyRoundCursor > 0
@@ -34,11 +35,12 @@ class CombatSkillSelector
     /**
      * 每次战斗推进先把剩余冷却减 1，归零后可再次释放。
      *
-     * @param  array<int|string, mixed>  $skillCooldowns
+     * @param  array<int|string, mixed>|null  $skillCooldowns
      * @return array<int, int>
      */
-    public function tickRemainingCooldowns(array $skillCooldowns): array
+    public function tickRemainingCooldowns(?array $skillCooldowns): array
     {
+        $skillCooldowns ??= [];
         $remaining = [];
         foreach ($skillCooldowns as $skillId => $value) {
             $left = (int) $value - 1;

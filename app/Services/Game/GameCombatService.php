@@ -257,7 +257,7 @@ class GameCombatService
 
         // 处理一次战斗推进
         $skillCooldowns = $this->remainingSkillCooldowns($character);
-        $skillsUsedAggregated = is_array($character->combat_skills_used ?? []) ? $character->combat_skills_used : [];
+        $skillsUsedAggregated = is_array($character->combat_skills_used) ? $character->combat_skills_used : [];
         $requestedSkillIds = $skillIds === null
             ? null
             : array_map(fn ($v) => (int) $v, array_values($skillIds));
@@ -437,9 +437,12 @@ class GameCombatService
      */
     private function remainingSkillCooldowns(GameCharacter $character): array
     {
-        $stored = is_array($character->combat_skill_cooldowns ?? []) ? $character->combat_skill_cooldowns : [];
+        $stored = $character->combat_skill_cooldowns;
 
-        return (new CombatSkillSelector)->remainingCooldowns($stored, (int) $character->combat_rounds);
+        return (new CombatSkillSelector)->remainingCooldowns(
+            is_array($stored) ? $stored : [],
+            (int) $character->combat_rounds
+        );
     }
 
     /**
@@ -455,8 +458,8 @@ class GameCombatService
         $character->combat_total_damage_dealt += (int) ($roundResult['round_damage_dealt'] ?? 0);
         $character->combat_total_damage_taken += (int) ($roundResult['round_damage_taken'] ?? 0);
         $character->combat_rounds = 0;
-        $character->combat_skills_used = is_array($roundResult['new_skills_aggregated'] ?? []) ? $roundResult['new_skills_aggregated'] : [];
-        $character->combat_skill_cooldowns = is_array($roundResult['new_cooldowns'] ?? []) ? $roundResult['new_cooldowns'] : [];
+        $character->combat_skills_used = is_array($roundResult['new_skills_aggregated'] ?? null) ? $roundResult['new_skills_aggregated'] : [];
+        $character->combat_skill_cooldowns = is_array($roundResult['new_cooldowns'] ?? null) ? $roundResult['new_cooldowns'] : [];
 
         // 保存更新的怪物数组(如果有)
         if (isset($roundResult['monsters_updated']) && is_array($roundResult['monsters_updated'])) {
@@ -524,7 +527,7 @@ class GameCombatService
             'experience_gained' => 0,
             'copper_gained' => 0,
             'loot' => [],
-            'skills_used' => is_array($roundResult['new_skills_aggregated'] ?? []) ? $roundResult['new_skills_aggregated'] : [],
+            'skills_used' => is_array($roundResult['new_skills_aggregated'] ?? null) ? $roundResult['new_skills_aggregated'] : [],
             'character' => $charArray,
             'current_hp' => 0,
             'current_mana' => 0,

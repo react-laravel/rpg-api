@@ -72,4 +72,12 @@ class CombatSkillSelectorTest extends TestCase
             $selector->tickRemainingCooldowns([7 => 3, 8 => 1])
         );
     }
+
+    public function test_remaining_cooldowns_treat_null_as_empty(): void
+    {
+        $selector = new CombatSkillSelector;
+
+        $this->assertSame([], $selector->remainingCooldowns(null));
+        $this->assertSame([], $selector->tickRemainingCooldowns(null));
+    }
 }
