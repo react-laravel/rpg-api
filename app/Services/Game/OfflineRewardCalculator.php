@@ -47,11 +47,11 @@ class OfflineRewardCalculator
         $experience = (int) ($level * $offlineSeconds * $expPerLevel);
         $copper = (int) ($level * $offlineSeconds * $copperPerLevel);
 
-        // Check for level up
+        // Check for level up (满级不再提示可升级)
         $currentExp = $character->experience;
         $expNeeded = $character->getExperienceToNextLevel();
         $newExp = $currentExp + $experience;
-        $levelUp = $newExp >= $expNeeded;
+        $levelUp = ! $character->isMaxLevel() && $newExp >= $expNeeded;
 
         return $this->format((int) $offlineSeconds, true, $experience, $copper, $levelUp);
     }

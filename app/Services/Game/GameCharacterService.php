@@ -46,6 +46,7 @@ class GameCharacterService
                     'id', 'name', 'class', 'level', 'experience', 'copper', 'is_fighting', 'difficulty_tier',
                 ]))->values()->all(),
                 'experience_table' => config('game.experience_table', []),
+                'max_character_level' => (int) config('game.max_character_level', 200),
             ];
         });
     }
@@ -78,6 +79,7 @@ class GameCharacterService
         return [
             'character' => $character,
             'experience_table' => config('game.experience_table', []),
+            'max_character_level' => (int) config('game.max_character_level', 200),
             'combat_stats' => $character->getCombatStats(),
             'stats_breakdown' => $character->getCombatStatsBreakdown(),
             'equipped_items' => $character->getEquippedItems(),
