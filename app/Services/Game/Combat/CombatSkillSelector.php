@@ -11,7 +11,47 @@ use App\Models\Game\GameCharacterSkill;
 class CombatSkillSelector
 {
     /**
-     * 解析本回合使用的技能(蓝量、冷却、单体/群体)
+     * 冷却存剩余战斗推进次数。旧数据曾存到期回合号，用 combat_rounds 游标换算。
+     *
+     * @param  array<int|string, mixed>  $stored
+     * @return array<int, int>
+     */
+    public function remainingCooldowns(array $stored, int $legacyRoundCursor = 0): array
+    {
+        $remaining = [];
+        foreach ($stored as $skillId => $value) {
+            $left = $legacyRoundCursor > 0
+                ? max(0, (int) $value - $legacyRoundCursor)
+                : max(0, (int) $value);
+            if ($left > 0) {
+                $remaining[(int) $skillId] = $left;
+            }
+        }
+
+        return $remaining;
+    }
+
+    /**
+     * 每次战斗推进先把剩余冷却减 1，归零后可再次释放。
+     *
+     * @param  array<int|string, mixed>  $skillCooldowns
+     * @return array<int, int>
+     */
+    public function tickRemainingCooldowns(array $skillCooldowns): array
+    {
+        $remaining = [];
+        foreach ($skillCooldowns as $skillId => $value) {
+            $left = (int) $value - 1;
+            if ($left > 0) {
+                $remaining[(int) $skillId] = $left;
+            }
+        }
+
+        return $remaining;
+    }
+
+    /**
+     * 解析本次战斗推进使用的技能(蓝量、冷却、单体/群体)
      * 智能选择：根据怪物血量和数量、技能伤害和消耗来决定使用最佳技能
      *
      * @return array{mana: int, is_aoe: bool, skill_damage: int, skills_used_this_round: array, new_cooldowns: array}
@@ -19,14 +59,13 @@ class CombatSkillSelector
     public function resolveRoundSkill(
         GameCharacter $character,
         ?array $requestedSkillIds,
-        int $currentRound,
         int $currentMana,
         array $skillCooldowns
     ): array {
         $isAoeSkill = false;
         $skillDamage = 0;
         $skillsUsedThisRound = [];
-        $newCooldowns = $skillCooldowns;
+        $newCooldowns = $this->tickRemainingCooldowns($skillCooldowns);
 
         $learnedSkills = $character->skills()
             ->with('skill')
@@ -35,12 +74,7 @@ class CombatSkillSelector
 
         $activeSkills = $learnedSkills->filter(fn ($cs) => $cs->skill->type === 'active');
         $passiveSkills = $learnedSkills->filter(fn ($cs) => $cs->skill->type === 'passive');
-
-        // 若前端指定了自动施法技能列表，只从该列表中选技能；被动强化仍按已学习技能自动生效
-        if ($requestedSkillIds !== null && $requestedSkillIds !== []) {
-            $allowedIds = array_flip($requestedSkillIds);
-            $activeSkills = $activeSkills->filter(fn ($cs) => isset($allowedIds[$cs->skill->id]));
-        }
+        $activeSkills = $this->restrictActiveSkills($activeSkills, $requestedSkillIds);
 
         // 获取当前怪物信息用于智能选择
         $monsters = $character->combat_monsters ?? [];
@@ -59,9 +93,9 @@ class CombatSkillSelector
         foreach ($activeSkills as $charSkill) {
             /** @var GameCharacterSkill $charSkill */
             $skill = $charSkill->skill;
-            $cooldownEnd = $newCooldowns[$skill->id] ?? 0;
+            $remainingCooldown = $newCooldowns[$skill->id] ?? 0;
 
-            if ($currentMana >= $skill->mana_cost && $cooldownEnd <= $currentRound) {
+            if ($currentMana >= $skill->mana_cost && $remainingCooldown <= 0) {
                 $passiveEffects = $this->getPassiveEffectsForSkill($skill, $passiveSkills);
                 $isAoe = ($skill->target_type ?? 'single') === 'all';
                 $damage = (int) ($skill->damage ?? $skill->base_damage ?? 0);
@@ -99,7 +133,11 @@ class CombatSkillSelector
             $skill = $selectedSkill['skill'];
             $skillDamage = $selectedSkill['damage'];
             $currentMana -= $selectedSkill['mana_cost'];
-            $newCooldowns[$skill->id] = $currentRound + $selectedSkill['cooldown'];
+            if ($selectedSkill['cooldown'] > 0) {
+                $newCooldowns[$skill->id] = $selectedSkill['cooldown'];
+            } else {
+                unset($newCooldowns[$skill->id]);
+            }
             $isAoeSkill = $selectedSkill['is_aoe'];
             $skillsUsedThisRound[] = [
                 'skill_id' => $skill->id,
@@ -144,7 +182,7 @@ class CombatSkillSelector
         $baseAttackDamage = (int) ($charAttack * 0.5);
 
         // 策略 1: 多目标战斗优先考虑群体技能。
-        // 旧逻辑只有“3 只怪且 2 只低血量”才看 AOE，导致冰箭这类 0CD 低耗单体在多数多怪回合被反复选择，
+        // 旧逻辑只有“3 只怪且 2 只低血量”才看 AOE，导致冰箭这类 0CD 低耗单体在多数多怪场合被反复选择，
         // 陨石术、连锁闪电、冰霜新星即使可用也很少出手。这里按“单次总期望伤害/耗蓝/冷却”综合评分。
         if ($aliveMonsterCount >= 2) {
             $aoeSkills = array_filter($availableSkills, fn ($s) => $s['is_aoe']);
@@ -206,6 +244,24 @@ class CombatSkillSelector
         });
 
         return $availableSkills[0];
+    }
+
+    /**
+     * 前端指定的自动施法列表：null 表示不限制；[] 表示关闭全部主动技能。
+     *
+     * @param  \Illuminate\Support\Collection<int, GameCharacterSkill>  $activeSkills
+     * @param  int[]|null  $requestedSkillIds
+     * @return \Illuminate\Support\Collection<int, GameCharacterSkill>
+     */
+    public function restrictActiveSkills($activeSkills, ?array $requestedSkillIds)
+    {
+        if ($requestedSkillIds === null) {
+            return $activeSkills;
+        }
+
+        $allowedIds = array_flip($requestedSkillIds);
+
+        return $activeSkills->filter(fn ($cs) => isset($allowedIds[$cs->skill->id]));
     }
 
     /**

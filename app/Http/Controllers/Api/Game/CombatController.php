@@ -43,7 +43,7 @@ class CombatController extends Controller
     }
 
     /**
-     * 开始自动战斗：服务器每 3 秒执行一回合，通过 Reverb WebSocket 推送战斗结果
+     * 开始自动战斗：服务器每隔数秒推进一次战斗，通过 Reverb WebSocket 推送战斗结果
      */
     public function start(Request $request): JsonResponse
     {

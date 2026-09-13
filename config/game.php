@@ -202,7 +202,7 @@ return [
         'defense_reduction' => 0.5,
         'aoe_damage_multiplier' => 0.7,
         'monster_defense_reduction' => 0.3,
-        // 每回合结束后的资源恢复：HP = 体力 × 系数，MP = 能量 × 系数
+        // 每次战斗推进后的资源恢复：HP = 体力 × 系数，MP = 能量 × 系数
         'hp_regen_per_vitality' => 1,
         'mp_regen_per_energy' => 1,
         // 刷怪类型概率：普通 95%，剩余 5% 在地图已有的精英/Boss 类型间均分

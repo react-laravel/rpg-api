@@ -72,7 +72,7 @@ class AutoCombatRoundJob implements ShouldQueue
         }
 
         try {
-            // 防止历史遗留或重复排队的 job 在 3 秒窗口内连续执行回合。
+            // 防止历史遗留或重复排队的 job 在间隔窗口内连续推进战斗。
             if (self::shouldWaitForNextRound($data)) {
                 return;
             }
@@ -102,7 +102,7 @@ class AutoCombatRoundJob implements ShouldQueue
                 }
             }
 
-            // 执行回合前再次从 Redis 读取技能列表，确保用户中途取消/启用技能能立即生效
+            // 执行战斗推进前再次从 Redis 读取技能列表，确保用户中途取消/启用技能能立即生效
             $freshPayload = Redis::get($key);
             if (self::hasAutoCombatPayload($freshPayload)) {
                 $freshData = self::decodePayload($freshPayload);
@@ -125,11 +125,16 @@ class AutoCombatRoundJob implements ShouldQueue
                 return;
             }
 
-            // 检查 Redis key 是否仍然存在
-            if (self::hasAutoCombatPayload(Redis::get($key))) {
+            // 战斗推进后只补 next_round_at，重新读取 Redis，避免覆盖战斗中途更新的 skill_ids。
+            $afterPayload = Redis::get($key);
+            if (self::hasAutoCombatPayload($afterPayload)) {
                 $nextRoundAt = now()->addSeconds(self::ROUND_INTERVAL_SECONDS);
-                $latestPayloadData[self::NEXT_ROUND_AT_KEY] = $nextRoundAt->getTimestamp();
-                self::writePayload($key, $latestPayloadData);
+                $current = self::decodePayload($afterPayload);
+                if ($current === []) {
+                    $current = $latestPayloadData;
+                }
+                $current[self::NEXT_ROUND_AT_KEY] = $nextRoundAt->getTimestamp();
+                self::writePayload($key, $current);
                 // 延迟 3 秒后调度下一个 job（不阻塞 Worker）
                 self::dispatch($this->characterId, [])->delay($nextRoundAt);
             }

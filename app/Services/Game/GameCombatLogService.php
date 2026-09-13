@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 class GameCombatLogService
 {
     /**
-     * Create a combat log entry for a round
+     * 记录一次战斗推进的日志
      */
     public function createRoundLog(
         GameCharacter $character,

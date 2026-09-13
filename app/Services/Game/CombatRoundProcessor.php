@@ -11,7 +11,7 @@ use App\Services\Game\DTOs\RoundDetailsContext;
 use App\Support\Game\RpgAssetIconNormalizer;
 
 /**
- * 单回合战斗处理器：技能选择、目标选择、伤害计算、反击、奖励结算
+ * 单次战斗推进处理器：技能选择、目标选择、伤害计算、反击、奖励结算
  */
 class CombatRoundProcessor
 {
@@ -22,13 +22,12 @@ class CombatRoundProcessor
     ) {}
 
     /**
-     * 处理一回合战斗(支持多怪物)
+     * 处理一次战斗推进(支持多怪物)
      *
      * @return array{round_damage_dealt: int, round_damage_taken: int, new_monster_hp: int, new_char_hp: int, new_char_mana: int, defeat: bool, has_alive_monster: bool, skills_used_this_round: array, new_cooldowns: array, new_skills_aggregated: array, monsters_updated: array, slots_where_monster_died_this_round: array<int>, experience_gained: int, copper_gained: int, round_details: array}
      */
     public function processOneRound(
         GameCharacter $character,
-        int $currentRound,
         array $skillCooldowns,
         array $skillsUsedAggregated,
         ?array $requestedSkillIds = null
@@ -55,7 +54,6 @@ class CombatRoundProcessor
         $skillResult = $this->skillSelector->resolveRoundSkill(
             $character,
             $requestedSkillIds,
-            $currentRound,
             $currentMana,
             $skillCooldowns
         );
@@ -155,7 +153,6 @@ class CombatRoundProcessor
                 totalDamageDealt: $totalDamageDealt,
                 defenseReduction: $defenseReduction,
                 totalMonsterDamage: $totalMonsterDamage,
-                currentRound: $currentRound,
                 aliveMonsterCount: count($aliveMonstersAtStart),
                 monstersKilledThisRound: $monstersKilledThisRound,
                 isCrit: $isCrit,
@@ -254,7 +251,6 @@ class CombatRoundProcessor
                 'monster_counter' => $context->totalMonsterDamage,
             ],
             'battle' => [
-                'round' => $context->currentRound,
                 'alive_count' => $context->aliveMonsterCount,
                 'killed_count' => $context->monstersKilledThisRound,
                 'is_crit' => $context->isCrit,

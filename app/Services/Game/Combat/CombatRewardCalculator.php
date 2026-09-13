@@ -10,7 +10,7 @@ use App\Models\Game\GameMonsterDefinition;
 class CombatRewardCalculator
 {
     /**
-     * 计算本回合死亡怪物的经验与铜币奖励(已乘难度系数)
+     * 计算本次死亡怪物的经验与铜币奖励(已乘难度系数)
      *
      * @param  array<int, array<string, mixed>>  $monstersUpdated
      * @param  array<int, int>  $hpAtRoundStart

@@ -10,7 +10,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * 战斗更新事件，立即推送到 Reverb，避免战斗回合与广播各排一次队导致首帧反馈过慢。
+ * 战斗更新事件，立即推送到 Reverb，避免战斗推进与广播各排一次队导致首帧反馈过慢。
  */
 class GameCombatUpdate implements ShouldBroadcastNow
 {

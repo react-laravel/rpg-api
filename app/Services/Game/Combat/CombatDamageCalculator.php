@@ -171,8 +171,8 @@ class CombatDamageCalculator
     }
 
     /**
-     * 选择本回合攻击目标
-     * 单体：优先攻击血量最低的怪物（同血量按槽位靠前）；跳过 is_new 怪物（首回合不可攻击）
+     * 选择本次攻击目标
+     * 单体：优先攻击血量最低的怪物（同血量按槽位靠前）；跳过刚出现的 is_new 怪物（本次不可攻击）
      * 群体：攻击所有可攻击的存活怪物
      *
      * @param  array<int, array<string, mixed>|null>  $monsters

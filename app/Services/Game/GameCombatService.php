@@ -6,6 +6,7 @@ use App\Exceptions\GameException;
 use App\Jobs\Game\AutoCombatRoundJob;
 use App\Models\Game\GameCharacter;
 use App\Models\Game\GameMapDefinition;
+use App\Services\Game\Combat\CombatSkillSelector;
 use App\Services\Game\DTOs\DefeatContext;
 use App\Support\Game\RpgAssetIconNormalizer;
 use Illuminate\Support\Facades\Log;
@@ -14,14 +15,14 @@ use Illuminate\Support\Facades\Redis;
 /**
  * 战斗服务类
  *
- * 负责战斗相关的业务逻辑，包括执行战斗回合、处理胜负、发放奖励等
+ * 负责战斗相关的业务逻辑，包括执行战斗推进、处理胜负、发放奖励等
  */
 class GameCombatService
 {
     /**
      * 构造函数
      *
-     * @param  CombatRoundProcessor  $roundProcessor  回合处理器
+     * @param  CombatRoundProcessor  $roundProcessor  战斗推进处理器
      * @param  GameMonsterService  $monsterService  怪物服务
      * @param  GameCombatLootService  $lootService  战利品服务
      * @param  GameCombatLogService  $combatLogService  战斗日志服务
@@ -120,7 +121,7 @@ class GameCombatService
             'current_hp' => $character->getCurrentHp(),
             'current_mana' => $character->getCurrentMana(),
             'last_combat_at' => $character->last_combat_at,
-            'skill_cooldowns' => $character->combat_skill_cooldowns ?? [],
+            'skill_cooldowns' => $this->remainingSkillCooldowns($character),
         ];
 
         if ($character->is_fighting) {
@@ -199,9 +200,8 @@ class GameCombatService
             throw new \InvalidArgumentException('当前战斗怪物不存在，已清除状态');
         }
 
-        // 处理回合
-        $currentRound = (int) $character->combat_rounds + 1;
-        $skillCooldowns = is_array($character->combat_skill_cooldowns ?? []) ? $character->combat_skill_cooldowns : [];
+        // 处理一次战斗推进
+        $skillCooldowns = $this->remainingSkillCooldowns($character);
         $skillsUsedAggregated = is_array($character->combat_skills_used ?? []) ? $character->combat_skills_used : [];
         $requestedSkillIds = $skillIds === null
             ? null
@@ -209,13 +209,12 @@ class GameCombatService
 
         $roundResult = $this->roundProcessor->processOneRound(
             $character,
-            $currentRound,
-            (array) $skillCooldowns,
+            $skillCooldowns,
             (array) $skillsUsedAggregated,
             $requestedSkillIds
         );
 
-        // 回合后按体力/能量自动恢复 HP/MP
+        // 推进后按体力/能量自动恢复 HP/MP
         $roundRegen = $this->applyRoundResourceRegeneration(
             $character,
             (int) $roundResult['new_char_hp'],
@@ -227,7 +226,7 @@ class GameCombatService
         }
 
         // 持久化战斗状态
-        $this->persistCombatState($character, $roundResult, $currentRound);
+        $this->persistCombatState($character, $roundResult);
 
         // 处理失败
         if (! empty($roundResult['defeat'])) {
@@ -238,21 +237,21 @@ class GameCombatService
                 $monsterHp
             );
 
-            return $this->handleDefeat($character, $map, $defeatContext, $currentRound, $roundResult);
+            return $this->handleDefeat($character, $map, $defeatContext, $roundResult);
         }
 
         // 检查是否所有怪物都死亡
         $isVictory = ! $roundResult['has_alive_monster'];
         if ($isVictory) {
-            // 所有怪物死亡，不立即重生，保持死亡怪物可见直到下一回合
+            // 所有怪物死亡，不立即重生，保持死亡怪物可见直到下次推进
             $roundResult['new_monster_max_hp'] = $roundResult['new_monster_hp']; // 保持总 HP 不变
             $roundResult['victory'] = true;
         }
 
-        // 每回合按概率尝试补充新怪物(30% 不生成，70% 按权重生成 1～5 只)，不要求全部死亡
-        $roundResult = $this->monsterService->tryAddNewMonsters($character, $map, $roundResult, $currentRound);
+        // 每次推进按概率尝试补充新怪物(30% 不生成，70% 按权重生成 1～5 只)，不要求全部死亡
+        $roundResult = $this->monsterService->tryAddNewMonsters($character, $map, $roundResult);
 
-        // 为本回合死亡的怪物发放经验和铜币
+        // 为本次死亡的怪物发放经验和铜币
         $expGained = $roundResult['experience_gained'] ?? 0;
         $copperGained = $roundResult['copper_gained'] ?? 0;
         if ($expGained > 0 || $copperGained > 0) {
@@ -301,13 +300,13 @@ class GameCombatService
             'monster_hp_before_round' => $monsterHp,
             'damage_dealt' => $roundResult['round_damage_dealt'],
             'damage_taken' => $roundResult['round_damage_taken'],
-            'rounds' => $currentRound,
+            'rounds' => 0,
             'experience_gained' => $roundResult['experience_gained'] ?? 0,
             'copper_gained' => $roundResult['copper_gained'] ?? 0,
             'loot' => $roundResult['loot'] ?? [],
             'skills_used' => $roundResult['skills_used_this_round'],
             'skill_target_positions' => $roundResult['skill_target_positions'] ?? [],
-            'skill_cooldowns' => $character->combat_skill_cooldowns ?? [], // 技能冷却(回合数)
+            'skill_cooldowns' => $character->combat_skill_cooldowns ?? [],
             'round_regen' => $roundRegen !== [] ? $roundRegen : null,
             'character' => ($character->fresh() ?? $character)->toArray(),
             'combat_log_id' => $combatLog->id,
@@ -325,7 +324,7 @@ class GameCombatService
     }
 
     /**
-     * 回合结束后按体力/能量恢复 HP/MP
+     * 战斗推进后按体力/能量恢复 HP/MP
      *
      * @return array<string, array{name: string, restored: int}>
      */
@@ -379,19 +378,28 @@ class GameCombatService
     }
 
     /**
+     * @return array<int, int>
+     */
+    private function remainingSkillCooldowns(GameCharacter $character): array
+    {
+        $stored = is_array($character->combat_skill_cooldowns ?? []) ? $character->combat_skill_cooldowns : [];
+
+        return (new CombatSkillSelector)->remainingCooldowns($stored, (int) $character->combat_rounds);
+    }
+
+    /**
      * 持久化战斗状态
      *
      * @param  GameCharacter  $character  角色实例
-     * @param  array<string,mixed>  $roundResult  回合结果
-     * @param  int  $currentRound  当前回合数
+     * @param  array<string,mixed>  $roundResult  本次战斗结果
      */
-    private function persistCombatState(GameCharacter $character, array $roundResult, int $currentRound): void
+    private function persistCombatState(GameCharacter $character, array $roundResult): void
     {
         $character->current_hp = max(0, (int) ($roundResult['new_char_hp'] ?? 0));
         $character->current_mana = max(0, (int) ($roundResult['new_char_mana'] ?? 0));
         $character->combat_total_damage_dealt += (int) ($roundResult['round_damage_dealt'] ?? 0);
         $character->combat_total_damage_taken += (int) ($roundResult['round_damage_taken'] ?? 0);
-        $character->combat_rounds = $currentRound;
+        $character->combat_rounds = 0;
         $character->combat_skills_used = is_array($roundResult['new_skills_aggregated'] ?? []) ? $roundResult['new_skills_aggregated'] : [];
         $character->combat_skill_cooldowns = is_array($roundResult['new_cooldowns'] ?? []) ? $roundResult['new_cooldowns'] : [];
 
@@ -407,15 +415,13 @@ class GameCombatService
      * @param  GameCharacter  $character  角色实例
      * @param  GameMapDefinition  $map  地图实例
      * @param  DefeatContext  $defeatContext  失败上下文 DTO
-     * @param  int  $currentRound  当前回合数
-     * @param  array<string,mixed>  $roundResult  回合结果
+     * @param  array<string,mixed>  $roundResult  本次战斗结果
      * @return array 失败结果
      */
     private function handleDefeat(
         GameCharacter $character,
         GameMapDefinition $map,
         DefeatContext $defeatContext,
-        int $currentRound,
         array $roundResult
     ): array {
         // 失败时(显式转换为 int，避免 mixed 导致的静态分析问题)
@@ -459,7 +465,7 @@ class GameCombatService
             'monster_hp_before_round' => $defeatContext->monsterHpBeforeRound,
             'damage_dealt' => (int) $character->combat_total_damage_dealt,
             'damage_taken' => (int) $character->combat_total_damage_taken,
-            'rounds' => $currentRound,
+            'rounds' => 0,
             'experience_gained' => 0,
             'copper_gained' => 0,
             'loot' => [],

@@ -293,7 +293,7 @@ trait CharacterCombatStats
     }
 
     /**
-     * 每回合生命值恢复量（基于体力）
+     * 战斗中每次推进的生命值恢复量（基于体力）
      */
     public function getHpRegenPerRound(): int
     {
@@ -303,7 +303,7 @@ trait CharacterCombatStats
     }
 
     /**
-     * 每回合法力值恢复量（基于能量）
+     * 战斗中每次推进的法力值恢复量（基于能量）
      */
     public function getManaRegenPerRound(): int
     {

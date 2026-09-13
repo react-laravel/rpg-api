@@ -264,14 +264,13 @@ class GameMonsterService
     }
 
     /**
-     * 每回合按概率尝试补充新怪物：30% 不生成，70% 按权重生成 1～5 只(1 只概率最大，依次递减)
-     * 空槽位 = 未占用或怪物已死亡，每回合都可能补怪，不要求全部死亡才刷新
-     */
-    /**
+     * 每次战斗推进按概率尝试补充新怪物：30% 不生成，70% 按权重生成 1～5 只(1 只概率最大，依次递减)
+     * 空槽位 = 未占用或怪物已死亡，每次推进都可能补怪，不要求全部死亡才刷新
+     *
      * @param  array<string,mixed>  $roundResult
      * @return array<string,mixed>
      */
-    public function tryAddNewMonsters(GameCharacter $character, GameMapDefinition $map, array $roundResult, int $currentRound): array
+    public function tryAddNewMonsters(GameCharacter $character, GameMapDefinition $map, array $roundResult): array
     {
         $currentMonsters = $character->combat_monsters ?? [];
         $indexed = $currentMonsters === [] ? [] : array_values($currentMonsters);
@@ -285,7 +284,7 @@ class GameMonsterService
                 $emptySlots[] = $i;
             }
         }
-        // 本回合刚死亡的槽位不生成新怪，避免新怪与死亡动画重叠，下一回合该槽位可再参与
+        // 刚死亡的槽位本次不补怪，避免新怪与死亡动画重叠，下次推进该槽位可再参与
         $justDiedSlots = $roundResult['slots_where_monster_died_this_round'] ?? [];
         $fillableSlots = array_values(array_diff($emptySlots, $justDiedSlots));
         $canAdd = count($fillableSlots);
