@@ -26,6 +26,9 @@ class CombatDamageCalculator
             $isCrit = $context->isCrit;
             $charCritDamage = $context->charCritDamage;
             $useAoe = $context->useAoe;
+            $nonCritBonus = $context->nonCritBonus;
+            $slowedDamageBonus = $context->slowedDamageBonus;
+            $targetDamageRatios = $context->targetDamageRatios;
         } else {
             $monsters = $context['monsters'] ?? $context[0] ?? [];
             $targetMonsters = $context['targetMonsters'] ?? $context[1] ?? [];
@@ -34,15 +37,24 @@ class CombatDamageCalculator
             $isCrit = $context['isCrit'] ?? $context[4] ?? false;
             $charCritDamage = $context['charCritDamage'] ?? $context[5] ?? 1.5;
             $useAoe = $context['useAoe'] ?? $context[6] ?? false;
+            $nonCritBonus = (float) ($context['nonCritBonus'] ?? 0);
+            $slowedDamageBonus = (float) ($context['slowedDamageBonus'] ?? 0);
+            $targetDamageRatios = $context['targetDamageRatios'] ?? null;
         }
         $totalDamageDealt = 0;
         $monstersUpdated = [];
+        $ratioBySlot = $this->buildRatioBySlot($targetMonsters, $targetDamageRatios);
 
         foreach ($monsters as $idx => $m) {
+            if (! is_array($m)) {
+                $monstersUpdated[$idx] = $m;
+
+                continue;
+            }
+
             $m['damage_taken'] = -1;
             $m['was_attacked'] = false;
 
-            // 新出现的怪物不受攻击
             if (isset($m['is_new']) && $m['is_new'] === true) {
                 Log::info('Skipping new monster attack', ['monster' => $m['name'], 'is_new' => true]);
                 $monstersUpdated[$idx] = $m;
@@ -66,9 +78,25 @@ class CombatDamageCalculator
             $mDefense = (int) ($m['defense'] ?? 0);
             $defenseReduction = config('game.combat.defense_reduction', 0.5);
             $baseDamage = max(0, $charAttack - $mDefense * $defenseReduction);
-            $damage = $skillDamage > 0
-                ? (int) ($baseDamage + $skillDamage)
-                : (int) ($baseDamage * ($isCrit ? $charCritDamage : 1));
+            $raw = $skillDamage > 0
+                ? (float) ($baseDamage + $skillDamage)
+                : (float) $baseDamage;
+
+            if ($isCrit) {
+                $raw *= $charCritDamage;
+            } elseif ($nonCritBonus > 0 && $skillDamage > 0) {
+                $raw *= (1 + $nonCritBonus);
+            }
+
+            if ($slowedDamageBonus > 0 && (int) ($m['slow_ticks'] ?? 0) > 0) {
+                $raw *= (1 + $slowedDamageBonus);
+            }
+
+            $slot = isset($m['position']) ? (int) $m['position'] : null;
+            $falloff = $slot !== null && isset($ratioBySlot[$slot]) ? $ratioBySlot[$slot] : 1.0;
+            $raw *= $falloff;
+
+            $damage = (int) round($raw);
             $aoeMultiplier = config('game.combat.aoe_damage_multiplier', 0.7);
             $targetDamage = $useAoe ? (int) ($damage * $aoeMultiplier) : $damage;
             $actualDamage = min($targetDamage, (int) $m['hp']);
@@ -80,9 +108,8 @@ class CombatDamageCalculator
             $monstersUpdated[$idx] = $m;
         }
 
-        // 清除所有新怪物标记
         foreach ($monstersUpdated as $idx => $m) {
-            if (isset($m['is_new'])) {
+            if (is_array($m) && isset($m['is_new'])) {
                 unset($monstersUpdated[$idx]['is_new']);
             }
         }
@@ -91,8 +118,6 @@ class CombatDamageCalculator
     }
 
     /**
-     * 计算基础攻击伤害与暴击额外伤害
-     *
      * @param  array<int, array<string, mixed>>  $targetMonsters
      * @return array{0: int, 1: int}
      */
@@ -104,17 +129,23 @@ class CombatDamageCalculator
         bool $isCrit,
         float $defenseReduction
     ): array {
-        if (empty($targetMonsters)) {
+        if ($targetMonsters === []) {
             return [0, 0];
-        }
-
-        if ($skillDamage > 0) {
-            return [$skillDamage, 0];
         }
 
         $firstTarget = reset($targetMonsters);
         $targetDefense = $firstTarget['defense'] ?? 0;
         $baseAttackDamage = max(0, (int) ($charAttack - $targetDefense * $defenseReduction));
+
+        if ($skillDamage > 0) {
+            $combined = $baseAttackDamage + $skillDamage;
+            if (! $isCrit) {
+                return [$combined, 0];
+            }
+            $critted = (int) round($combined * $charCritDamage);
+
+            return [$critted, $critted - $combined];
+        }
 
         if (! $isCrit) {
             return [$baseAttackDamage, 0];
@@ -127,31 +158,14 @@ class CombatDamageCalculator
     }
 
     /**
-     * 计算所有存活怪物对角色造成的总反击伤害
-     *
-     * @param  array<int, array<string, mixed>>  $monstersUpdated
+     * @param  array<int, array<string, mixed>|null>  $monstersUpdated
      */
     public function calculateMonsterCounterDamage(array $monstersUpdated, int $charDefense): int
     {
-        $total = 0;
-        foreach ($monstersUpdated as $m) {
-            if (($m['hp'] ?? 0) <= 0) {
-                continue;
-            }
-            $monsterAttack = $m['attack'] ?? 0;
-            $monsterDefenseReduction = config('game.combat.monster_defense_reduction', 0.3);
-            $monsterDamage = $monsterAttack - $charDefense * $monsterDefenseReduction;
-            if ($monsterDamage > 0) {
-                $total += (int) $monsterDamage;
-            }
-        }
-
-        return $total;
+        return (new CombatEffectApplier)->calculateMonsterCounterDamage($monstersUpdated, $charDefense);
     }
 
     /**
-     * 按槽位判断是否为攻击目标
-     *
      * @param  array<string, mixed>  $monster
      * @param  array<int, array<string, mixed>>  $targets
      */
@@ -171,14 +185,102 @@ class CombatDamageCalculator
     }
 
     /**
-     * 选择本次攻击目标
-     * 单体：优先攻击血量最低的怪物（同血量按槽位靠前）；跳过刚出现的 is_new 怪物（本次不可攻击）
-     * 群体：攻击所有可攻击的存活怪物
-     *
      * @param  array<int, array<string, mixed>|null>  $monsters
      * @return array<int, array<string, mixed>>
      */
     public function selectRoundTargets(array $monsters, bool $isAoeSkill): array
+    {
+        $attackableMonsters = $this->listAttackableMonsters($monsters);
+
+        if ($attackableMonsters === []) {
+            return [];
+        }
+
+        if ($isAoeSkill) {
+            return $attackableMonsters;
+        }
+
+        $sorted = $this->sortByLowestHp($attackableMonsters);
+
+        return [$sorted[0]];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>|null>  $monsters
+     * @return array<int, array<string, mixed>>
+     */
+    public function selectLowestHpTargets(array $monsters, int $count): array
+    {
+        $attackable = $this->sortByLowestHp($this->listAttackableMonsters($monsters));
+        if ($count <= 0) {
+            return [];
+        }
+
+        return array_slice($attackable, 0, $count);
+    }
+
+    /**
+     * 暴击后追加一个未命中目标（连锁）。
+     *
+     * @param  array<int, array<string, mixed>|null>  $monsters
+     * @param  array<int, array<string, mixed>>  $alreadyTargeted
+     * @return array<string, mixed>|null
+     */
+    public function selectChainTarget(array $monsters, array $alreadyTargeted): ?array
+    {
+        $usedSlots = [];
+        foreach ($alreadyTargeted as $target) {
+            if (isset($target['position'])) {
+                $usedSlots[(int) $target['position']] = true;
+            }
+        }
+
+        $candidates = [];
+        foreach ($this->listAttackableMonsters($monsters) as $monster) {
+            $slot = isset($monster['position']) ? (int) $monster['position'] : null;
+            if ($slot === null || isset($usedSlots[$slot])) {
+                continue;
+            }
+            $candidates[] = $monster;
+        }
+
+        if ($candidates === []) {
+            return null;
+        }
+
+        $sorted = $this->sortByLowestHp($candidates);
+
+        return $sorted[0];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $targetMonsters
+     * @return array<int, int>
+     */
+    public function getSkillTargetPositions(array $targetMonsters): array
+    {
+        $positions = array_map(fn ($m) => $m['position'] ?? null, $targetMonsters);
+
+        return array_values(array_filter($positions, fn ($p) => $p !== null));
+    }
+
+    public function rollChanceForProcessor(float $chance): bool
+    {
+        if ($chance <= 0) {
+            return false;
+        }
+        if ($chance >= 1) {
+            return true;
+        }
+
+        return mt_rand() / mt_getrandmax() < $chance;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>|null>  $monsters
+     * @return array<int, array<string, mixed>>
+     */
+    private function listAttackableMonsters(array $monsters): array
     {
         $attackableMonsters = [];
         foreach ($monsters as $monster) {
@@ -194,15 +296,16 @@ class CombatDamageCalculator
             $attackableMonsters[] = $monster;
         }
 
-        if ($attackableMonsters === []) {
-            return [];
-        }
+        return $attackableMonsters;
+    }
 
-        if ($isAoeSkill) {
-            return $attackableMonsters;
-        }
-
-        usort($attackableMonsters, function (array $first, array $second): int {
+    /**
+     * @param  array<int, array<string, mixed>>  $monsters
+     * @return array<int, array<string, mixed>>
+     */
+    private function sortByLowestHp(array $monsters): array
+    {
+        usort($monsters, function (array $first, array $second): int {
             $firstHp = isset($first['hp']) && is_numeric($first['hp']) ? (int) $first['hp'] : 0;
             $secondHp = isset($second['hp']) && is_numeric($second['hp']) ? (int) $second['hp'] : 0;
             $hpCompare = $firstHp <=> $secondHp;
@@ -220,28 +323,28 @@ class CombatDamageCalculator
             return $firstPosition <=> $secondPosition;
         });
 
-        return [$attackableMonsters[0]];
+        return $monsters;
     }
 
     /**
-     * 收集技能命中的目标位置
-     *
      * @param  array<int, array<string, mixed>>  $targetMonsters
-     * @return array<int, int>
+     * @param  array<int, float>|null  $targetDamageRatios
+     * @return array<int, float>
      */
-    public function getSkillTargetPositions(array $targetMonsters): array
+    private function buildRatioBySlot(array $targetMonsters, ?array $targetDamageRatios): array
     {
-        $positions = array_map(fn ($m) => $m['position'] ?? null, $targetMonsters);
+        if ($targetDamageRatios === null) {
+            return [];
+        }
 
-        return array_values(array_filter($positions, fn ($p) => $p !== null));
-    }
+        $map = [];
+        foreach (array_values($targetMonsters) as $i => $target) {
+            if (! isset($target['position'])) {
+                continue;
+            }
+            $map[(int) $target['position']] = (float) ($targetDamageRatios[$i] ?? 1.0);
+        }
 
-    /**
-     * 概率判定
-     */
-    public function rollChanceForProcessor(float $chance): bool
-    {
-        // $chance 是 0~1，例如 0.12 就是 12%概率
-        return mt_rand() / mt_getrandmax() < $chance;
+        return $map;
     }
 }

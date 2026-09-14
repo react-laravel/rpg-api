@@ -460,6 +460,7 @@ class GameCombatService
         $character->combat_rounds = 0;
         $character->combat_skills_used = is_array($roundResult['new_skills_aggregated'] ?? null) ? $roundResult['new_skills_aggregated'] : [];
         $character->combat_skill_cooldowns = is_array($roundResult['new_cooldowns'] ?? null) ? $roundResult['new_cooldowns'] : [];
+        // combat_buffs 由 RoundProcessor 写回角色实例，此处保留 dirty 属性
 
         // 保存更新的怪物数组(如果有)
         if (isset($roundResult['monsters_updated']) && is_array($roundResult['monsters_updated'])) {

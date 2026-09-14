@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property array<int, array<string,mixed>|null>|null $combat_monsters
+ * @property array<string, mixed>|null $combat_buffs
  * @property Carbon|null $combat_monsters_refreshed_at
  * @property int|null $combat_monster_id
  * @property int|null $combat_monster_hp
@@ -60,6 +61,7 @@ class GameCharacter extends Model
         'combat_rounds',
         'combat_skills_used',
         'combat_skill_cooldowns',
+        'combat_buffs',
         'combat_started_at',
         'last_online',
         'claimed_offline_at',
@@ -79,6 +81,7 @@ class GameCharacter extends Model
             'auto_recycle_max_value' => 'integer',
             'combat_skills_used' => 'array',
             'combat_skill_cooldowns' => 'array',
+            'combat_buffs' => 'array',
             'combat_monsters' => 'array',
             'combat_monsters_refreshed_at' => 'datetime',
             'combat_started_at' => 'datetime',
@@ -206,6 +209,7 @@ class GameCharacter extends Model
         $this->combat_rounds = 0;
         $this->combat_skills_used = null;
         $this->combat_skill_cooldowns = null;
+        $this->combat_buffs = null;
         $this->combat_started_at = null;
     }
 

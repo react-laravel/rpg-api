@@ -11,6 +11,16 @@ use Illuminate\Support\Collection;
  */
 class CombatSkillSelector
 {
+    /** @var list<string> */
+    private const ADDITIVE_EFFECT_KEYS = [
+        'damage_bonus',
+        'spell_damage_bonus',
+        'crit_bonus',
+        'non_crit_bonus',
+        'slowed_damage_bonus',
+        'crit_damage_bonus',
+    ];
+
     /**
      * 冷却存剩余战斗推进次数。旧数据曾存到期回合号，用 combat_rounds 游标换算。
      *
@@ -55,7 +65,6 @@ class CombatSkillSelector
 
     /**
      * 本拍能否施放看拍前剩余；拍末其它技能减 1，刚施放的写入完整冷却且本拍不再减。
-     * 因此 cooldown=1 会空一拍，而不是打完立刻又能打、界面却一直显示 1。
      *
      * @param  array<int|string, mixed>|null  $remainingAtStart
      * @return array<int, int>
@@ -76,10 +85,15 @@ class CombatSkillSelector
     }
 
     /**
-     * 解析本次战斗推进使用的技能(蓝量、冷却、单体/群体)
-     * 智能选择：根据怪物血量和数量、技能伤害和消耗来决定使用最佳技能
-     *
-     * @return array{mana: int, is_aoe: bool, skill_damage: int, skills_used_this_round: array, new_cooldowns: array}
+     * @return array{
+     *   mana: int,
+     *   is_aoe: bool,
+     *   skill_damage: int,
+     *   skills_used_this_round: array,
+     *   new_cooldowns: array,
+     *   cast_effects: array<string, mixed>,
+     *   is_defensive: bool
+     * }
      */
     public function resolveRoundSkill(
         GameCharacter $character,
@@ -87,9 +101,6 @@ class CombatSkillSelector
         int $currentMana,
         array $skillCooldowns
     ): array {
-        $isAoeSkill = false;
-        $skillDamage = 0;
-        $skillsUsedThisRound = [];
         $remainingAtStart = $this->remainingCooldowns($skillCooldowns);
 
         $learnedSkills = $character->skills()
@@ -101,54 +112,39 @@ class CombatSkillSelector
         $passiveSkills = $learnedSkills->filter(fn ($cs) => $cs->skill->type === 'passive');
         $activeSkills = $this->restrictActiveSkills($activeSkills, $requestedSkillIds);
 
-        // 获取当前怪物信息用于智能选择
         $monsters = $character->combat_monsters ?? [];
-        $aliveMonsters = array_filter($monsters, fn ($m) => ($m['hp'] ?? 0) > 0);
+        $aliveMonsters = array_filter($monsters, fn ($m) => is_array($m) && ($m['hp'] ?? 0) > 0);
         $aliveMonsterCount = count($aliveMonsters);
         $lowHpMonsters = array_filter($aliveMonsters, fn ($m) => $m['hp'] > 0 && $m['hp'] <= ($m['max_hp'] ?? 100) * 0.3);
         $lowHpMonsterCount = count($lowHpMonsters);
         $totalMonsterHp = array_sum(array_column($aliveMonsters, 'hp'));
 
-        // 角色基础攻击力
         $charStats = $character->getCombatStats();
         $charAttack = $charStats['attack'];
+        $buffs = is_array($character->combat_buffs ?? null) ? $character->combat_buffs : [];
+        $shieldSpellBonus = (float) ($buffs['spell_damage_bonus'] ?? 0);
 
-        // 过滤出可用的技能
         $availableSkills = [];
         foreach ($activeSkills as $charSkill) {
             /** @var GameCharacterSkill $charSkill */
             $skill = $charSkill->skill;
             $remainingCooldown = $remainingAtStart[$skill->id] ?? 0;
 
-            if ($currentMana >= $skill->mana_cost && $remainingCooldown <= 0) {
-                $passiveEffects = $this->getPassiveEffectsForSkill($skill, $passiveSkills);
-                $isAoe = ($skill->target_type ?? 'single') === 'all';
-                $damage = (int) ($skill->damage ?? $skill->base_damage ?? 0);
-                if (($passiveEffects['damage_bonus'] ?? 0) > 0) {
-                    $damage = (int) round($damage * (1 + (float) $passiveEffects['damage_bonus']));
-                }
-
-                $availableSkills[] = [
-                    'char_skill' => $charSkill,
-                    'skill' => $skill,
-                    'damage' => $damage,
-                    'mana_cost' => (int) $skill->mana_cost,
-                    'cooldown' => (int) $skill->cooldown,
-                    'is_aoe' => $isAoe,
-                    'passive_effects' => $passiveEffects,
-                    'passive_names' => $this->getPassiveNamesForSkill($skill, $passiveSkills),
-                ];
+            if ($currentMana < (int) $skill->mana_cost || $remainingCooldown > 0) {
+                continue;
             }
+
+            $built = $this->buildSkillCandidate($skill, $passiveSkills, $shieldSpellBonus);
+            $availableSkills[] = $built;
         }
 
-        if (empty($availableSkills)) {
+        if ($availableSkills === []) {
             return $this->buildNoSkillRoundResult(
                 $currentMana,
                 $this->cooldownsAfterPulse($remainingAtStart, null, 0)
             );
         }
 
-        // 智能选择最佳技能
         $selectedSkill = $this->selectOptimalSkill(
             $availableSkills,
             $aliveMonsterCount,
@@ -157,43 +153,134 @@ class CombatSkillSelector
             $charAttack
         );
 
-        if ($selectedSkill !== null) {
-            $skill = $selectedSkill['skill'];
-            $skillDamage = $selectedSkill['damage'];
-            $currentMana -= $selectedSkill['mana_cost'];
-            $newCooldowns = $this->cooldownsAfterPulse(
-                $remainingAtStart,
-                (int) $skill->id,
-                (int) $selectedSkill['cooldown']
+        if ($selectedSkill === null) {
+            return $this->buildNoSkillRoundResult(
+                $currentMana,
+                $this->cooldownsAfterPulse($remainingAtStart, null, 0)
             );
-            $isAoeSkill = $selectedSkill['is_aoe'];
-            $skillsUsedThisRound[] = [
+        }
+
+        $skill = $selectedSkill['skill'];
+        $currentMana -= (int) $selectedSkill['mana_cost'];
+        $newCooldowns = $this->cooldownsAfterPulse(
+            $remainingAtStart,
+            (int) $skill->id,
+            (int) $selectedSkill['cooldown']
+        );
+        $isAoeSkill = (bool) $selectedSkill['is_aoe'];
+        $effectKey = $skill->effect_key ?? null;
+        if ((int) ($selectedSkill['cast_effects']['extra_meteors'] ?? 0) > 0) {
+            $effectKey = 'meteor-storm';
+        }
+
+        return [
+            'mana' => $currentMana,
+            'is_aoe' => $isAoeSkill,
+            'skill_damage' => (int) $selectedSkill['damage'],
+            'skills_used_this_round' => [[
                 'skill_id' => $skill->id,
                 'name' => $skill->name,
                 'icon' => $skill->icon,
-                'effect_key' => $skill->effect_key ?? null,
-                'target_type' => $isAoeSkill ? 'all' : ($skill->target_type ?? 'single'),
+                'effect_key' => $effectKey,
+                'target_type' => $isAoeSkill ? 'all' : 'single',
                 'passive_effects' => $selectedSkill['passive_effects'] ?? [],
                 'passive_names' => $selectedSkill['passive_names'] ?? [],
-            ];
-
-            return [
-                'mana' => $currentMana,
-                'is_aoe' => $isAoeSkill,
-                'skill_damage' => $skillDamage,
-                'skills_used_this_round' => $skillsUsedThisRound,
-                'new_cooldowns' => $newCooldowns,
-            ];
-        }
-
-        return $this->buildNoSkillRoundResult(
-            $currentMana,
-            $this->cooldownsAfterPulse($remainingAtStart, null, 0)
-        );
+            ]],
+            'new_cooldowns' => $newCooldowns,
+            'cast_effects' => $selectedSkill['cast_effects'] ?? [],
+            'is_defensive' => (bool) ($selectedSkill['is_defensive'] ?? false),
+        ];
     }
 
     /**
-     * 智能选择最佳技能
+     * @param  Collection<int, GameCharacterSkill>  $passiveSkills
+     * @return array<string, mixed>
+     */
+    public function buildSkillCandidate(object $skill, $passiveSkills, float $shieldSpellBonus = 0.0): array
+    {
+        $passiveEffects = $this->getPassiveEffectsForSkill($skill, $passiveSkills);
+        $activeEffects = is_array($skill->effects ?? null) ? $skill->effects : [];
+        $mergedEffects = $this->mergeEffectMaps($activeEffects, $passiveEffects);
+
+        $isAoe = ($skill->target_type ?? 'single') === 'all';
+        $damage = (int) ($skill->damage ?? $skill->base_damage ?? 0);
+
+        $damageBonus = (float) ($mergedEffects['damage_bonus'] ?? 0) + (float) ($mergedEffects['spell_damage_bonus'] ?? 0) + $shieldSpellBonus;
+        if ($damageBonus > 0 && $damage > 0) {
+            $damage = (int) round($damage * (1 + $damageBonus));
+        }
+
+        $singleRatio = (float) ($mergedEffects['single_target_ratio'] ?? 0);
+        if ($singleRatio > 0) {
+            $isAoe = false;
+            $damage = (int) round($damage * $singleRatio);
+        }
+
+        $cooldown = (int) $skill->cooldown;
+        if (isset($mergedEffects['cooldown_override'])) {
+            $cooldown = max(0, (int) $mergedEffects['cooldown_override']);
+        } else {
+            $cooldown = max(0, $cooldown - (int) ($mergedEffects['cooldown_reduction'] ?? 0));
+        }
+
+        $shieldAmount = (int) ($mergedEffects['shield_amount'] ?? 0);
+        $shieldDuration = (int) ($mergedEffects['duration'] ?? $mergedEffects['shield_duration'] ?? 0);
+        $isDefensive = $shieldAmount > 0 && $damage <= 0;
+
+        $castEffects = [
+            'crit_bonus' => (float) ($mergedEffects['crit_bonus'] ?? 0),
+            'non_crit_bonus' => (float) ($mergedEffects['non_crit_bonus'] ?? 0),
+            'crit_damage_bonus' => (float) ($mergedEffects['crit_damage_bonus'] ?? 0),
+            'slowed_damage_bonus' => (float) ($mergedEffects['slowed_damage_bonus'] ?? 0),
+            'pierce_count' => (int) ($mergedEffects['pierce_count'] ?? 0),
+            'pierce_falloff' => (float) ($mergedEffects['pierce_falloff'] ?? 0.2),
+            'bounce_count' => (int) ($mergedEffects['bounce_count'] ?? 0),
+            'bounce_ratio' => (float) ($mergedEffects['bounce_ratio'] ?? 0.7),
+            'chain_on_crit' => (bool) ($mergedEffects['chain_on_crit'] ?? false),
+            'chain_ratio' => (float) ($mergedEffects['chain_ratio'] ?? 0.5),
+            'shield_amount' => $shieldAmount,
+            'shield_duration' => $shieldDuration,
+            'reflect_on_break' => (float) ($mergedEffects['reflect_on_break'] ?? 0),
+            'mana_restore_on_break' => (float) ($mergedEffects['mana_restore_on_break'] ?? 0),
+            'spell_damage_bonus' => (float) ($mergedEffects['spell_damage_bonus'] ?? 0),
+            'burn_duration' => (int) ($mergedEffects['burn_duration'] ?? 0),
+            'freeze_duration' => (int) ceil((float) ($mergedEffects['freeze_duration'] ?? 0)),
+            'boss_freeze_duration' => (float) ($mergedEffects['boss_freeze_duration'] ?? 0),
+            'slow_chance' => (float) ($mergedEffects['slow_chance'] ?? 0),
+            'slow_duration' => (int) ($mergedEffects['slow_duration'] ?? 0),
+            'ground_slow_duration' => (int) ($mergedEffects['ground_slow_duration'] ?? 0),
+            'extra_meteors' => (int) ($mergedEffects['extra_meteors'] ?? 0),
+            'apply_burn' => (bool) ($mergedEffects['apply_burn'] ?? false),
+            'apply_freeze' => (bool) ($mergedEffects['apply_freeze'] ?? false),
+            'apply_shock' => (bool) ($mergedEffects['apply_shock'] ?? false),
+            'ailment_duration' => (int) ($mergedEffects['ailment_duration'] ?? 0),
+        ];
+
+        // 无强化时的连锁闪电：默认弹跳 3 次
+        if (($skill->effect_key ?? '') === 'chain-lightning' && $castEffects['bounce_count'] <= 0 && $isAoe) {
+            $castEffects['bounce_count'] = 3;
+            $isAoe = false;
+        }
+        if ($castEffects['bounce_count'] > 0 || $castEffects['pierce_count'] > 0) {
+            $isAoe = false;
+        }
+
+        return [
+            'char_skill' => null,
+            'skill' => $skill,
+            'damage' => $isDefensive ? 0 : $damage,
+            'mana_cost' => (int) $skill->mana_cost,
+            'cooldown' => $cooldown,
+            'is_aoe' => $isAoe && ! $isDefensive,
+            'is_defensive' => $isDefensive,
+            'passive_effects' => $passiveEffects,
+            'passive_names' => $this->getPassiveNamesForSkill($skill, $passiveSkills),
+            'cast_effects' => $castEffects,
+        ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $availableSkills
      */
     public function selectOptimalSkill(
         array $availableSkills,
@@ -202,31 +289,30 @@ class CombatSkillSelector
         int $totalMonsterHp,
         int $charAttack
     ): ?array {
-        if (empty($availableSkills)) {
+        if ($availableSkills === []) {
             return null;
         }
 
-        if (count($availableSkills) === 1) {
-            return $availableSkills[0];
+        $offensive = array_values(array_filter($availableSkills, fn ($s) => ! ($s['is_defensive'] ?? false)));
+        $pool = $offensive !== [] ? $offensive : $availableSkills;
+
+        if (count($pool) === 1) {
+            return $pool[0];
         }
 
         $baseAttackDamage = (int) ($charAttack * 0.5);
 
-        // 策略 1: 多目标战斗优先考虑群体技能。
-        // 旧逻辑只有“3 只怪且 2 只低血量”才看 AOE，导致冰箭这类 0CD 低耗单体在多数多怪场合被反复选择，
-        // 陨石术、连锁闪电、冰霜新星即使可用也很少出手。这里按“单次总期望伤害/耗蓝/冷却”综合评分。
         if ($aliveMonsterCount >= 2) {
-            $aoeSkills = array_filter($availableSkills, fn ($s) => $s['is_aoe']);
-            if (! empty($aoeSkills)) {
+            $aoeSkills = array_values(array_filter($pool, fn ($s) => $s['is_aoe'] || ($s['cast_effects']['bounce_count'] ?? 0) > 0 || ($s['cast_effects']['pierce_count'] ?? 0) > 0));
+            if ($aoeSkills !== []) {
                 usort($aoeSkills, fn (array $a, array $b) => $this->compareSkillsByCombatScore($a, $b, $aliveMonsterCount, $totalMonsterHp));
 
                 return $aoeSkills[0];
             }
         }
 
-        // 策略 2: 总血量很低时省蓝，避免在有零耗技能时浪费。
         if ($totalMonsterHp <= $charAttack * 2) {
-            usort($availableSkills, function (array $firstSkill, array $secondSkill) use ($totalMonsterHp) {
+            usort($pool, function (array $firstSkill, array $secondSkill) use ($totalMonsterHp) {
                 if ($firstSkill['mana_cost'] === 0 && $secondSkill['mana_cost'] > 0) {
                     return -1;
                 }
@@ -245,25 +331,22 @@ class CombatSkillSelector
                 return $firstSkill['mana_cost'] <=> $secondSkill['mana_cost'];
             });
 
-            return $availableSkills[0];
+            return $pool[0];
         }
 
-        // 策略 3: 正常战斗，选择伤害最高的技能
-        $skillsWithDamage = array_filter($availableSkills, fn ($s) => $s['damage'] > 0);
-        if (! empty($skillsWithDamage)) {
+        $skillsWithDamage = array_values(array_filter($pool, fn ($s) => $s['damage'] > 0));
+        if ($skillsWithDamage !== []) {
             usort($skillsWithDamage, fn (array $a, array $b) => $this->compareSkillsByCombatScore($a, $b, $aliveMonsterCount, $totalMonsterHp));
 
             $bestSkill = $skillsWithDamage[0];
             $bestEfficiency = $bestSkill['mana_cost'] > 0 ? $bestSkill['damage'] / $bestSkill['mana_cost'] : $bestSkill['damage'];
-            $baseEfficiency = $baseAttackDamage;
 
-            if ($bestEfficiency >= $baseEfficiency * 0.5 || $bestSkill['damage'] > $totalMonsterHp * 0.5) {
+            if ($bestEfficiency >= $baseAttackDamage * 0.5 || $bestSkill['damage'] > $totalMonsterHp * 0.5) {
                 return $bestSkill;
             }
         }
 
-        // 默认：使用最经济的技能
-        usort($availableSkills, function ($a, $b) {
+        usort($pool, function ($a, $b) {
             if ($a['mana_cost'] === 0 && $b['mana_cost'] > 0) {
                 return -1;
             }
@@ -274,12 +357,10 @@ class CombatSkillSelector
             return $a['mana_cost'] <=> $b['mana_cost'];
         });
 
-        return $availableSkills[0];
+        return $pool[0];
     }
 
     /**
-     * 前端指定的自动施法列表：null 表示不限制；[] 表示关闭全部主动技能。
-     *
      * @param  Collection<int, GameCharacterSkill>  $activeSkills
      * @param  int[]|null  $requestedSkillIds
      * @return Collection<int, GameCharacterSkill>
@@ -297,7 +378,7 @@ class CombatSkillSelector
 
     /**
      * @param  array<int, int>  $cooldowns
-     * @return array{mana: int, is_aoe: bool, skill_damage: int, skills_used_this_round: array, new_cooldowns: array}
+     * @return array{mana: int, is_aoe: bool, skill_damage: int, skills_used_this_round: array, new_cooldowns: array, cast_effects: array, is_defensive: bool}
      */
     public function buildNoSkillRoundResult(int $mana, array $cooldowns): array
     {
@@ -307,14 +388,36 @@ class CombatSkillSelector
             'skill_damage' => 0,
             'skills_used_this_round' => [],
             'new_cooldowns' => $cooldowns,
+            'cast_effects' => [],
+            'is_defensive' => false,
         ];
     }
 
     /**
-     * 已学习的同技能线被动强化会改变主动技能数值。
-     * 小火球等单体技能不能因为被动强化变成 AOE；是否群体只由主动技能 target_type 决定。
+     * @param  array<string, mixed>  $first
+     * @param  array<string, mixed>  $second
+     * @return array<string, mixed>
      */
-    private function getPassiveEffectsForSkill(object $activeSkill, $passiveSkills): array
+    public function mergeEffectMaps(array $first, array $second): array
+    {
+        $effects = $first;
+        foreach ($second as $key => $value) {
+            if (in_array($key, self::ADDITIVE_EFFECT_KEYS, true) && is_numeric($value)) {
+                $effects[$key] = (float) ($effects[$key] ?? 0) + (float) $value;
+
+                continue;
+            }
+            $effects[$key] = $value;
+        }
+
+        return $effects;
+    }
+
+    /**
+     * @param  Collection<int, GameCharacterSkill>  $passiveSkills
+     * @return array<string, mixed>
+     */
+    public function getPassiveEffectsForSkill(object $activeSkill, $passiveSkills): array
     {
         $effects = [];
         foreach ($passiveSkills as $charSkill) {
@@ -323,9 +426,7 @@ class CombatSkillSelector
                 continue;
             }
 
-            foreach (($passive->effects ?? []) as $key => $value) {
-                $effects[$key] = $value;
-            }
+            $effects = $this->mergeEffectMaps($effects, is_array($passive->effects ?? null) ? $passive->effects : []);
         }
 
         return $effects;
@@ -371,10 +472,8 @@ class CombatSkillSelector
     }
 
     /**
-     * 按战斗收益排序：多目标看总期望伤害，伤害接近时再看耗蓝/冷却。
-     *
-     * @param  array{damage: int, mana_cost: int, cooldown?: int, is_aoe?: bool}  $firstSkill
-     * @param  array{damage: int, mana_cost: int, cooldown?: int, is_aoe?: bool}  $secondSkill
+     * @param  array{damage: int, mana_cost: int, cooldown?: int, is_aoe?: bool, cast_effects?: array}  $firstSkill
+     * @param  array{damage: int, mana_cost: int, cooldown?: int, is_aoe?: bool, cast_effects?: array}  $secondSkill
      */
     private function compareSkillsByCombatScore(array $firstSkill, array $secondSkill, int $aliveMonsterCount, int $totalMonsterHp): int
     {
@@ -389,11 +488,22 @@ class CombatSkillSelector
     }
 
     /**
-     * @param  array{damage: int, mana_cost: int, cooldown?: int, is_aoe?: bool}  $skill
+     * @param  array{damage: int, mana_cost: int, cooldown?: int, is_aoe?: bool, cast_effects?: array}  $skill
      */
     private function calculateCombatScore(array $skill, int $aliveMonsterCount, int $totalMonsterHp): float
     {
-        $targetCount = ($skill['is_aoe'] ?? false) ? max(1, $aliveMonsterCount) : 1;
+        $effects = $skill['cast_effects'] ?? [];
+        $multiTarget = ($skill['is_aoe'] ?? false)
+            || ((int) ($effects['bounce_count'] ?? 0) > 0)
+            || ((int) ($effects['pierce_count'] ?? 0) > 0);
+        $targetCount = $multiTarget ? max(1, $aliveMonsterCount) : 1;
+        if ((int) ($effects['bounce_count'] ?? 0) > 0) {
+            $targetCount = min($aliveMonsterCount, max(1, (int) $effects['bounce_count']));
+        }
+        if ((int) ($effects['pierce_count'] ?? 0) > 0) {
+            $targetCount = min($aliveMonsterCount, max(1, (int) $effects['pierce_count']));
+        }
+
         $expectedDamage = (float) $skill['damage'] * $targetCount;
         if ($totalMonsterHp > 0) {
             $expectedDamage = min($expectedDamage, (float) $totalMonsterHp);

@@ -4,6 +4,7 @@ namespace App\Services\Game;
 
 use App\Models\Game\GameCharacter;
 use App\Services\Game\Combat\CombatDamageCalculator;
+use App\Services\Game\Combat\CombatEffectApplier;
 use App\Services\Game\Combat\CombatRewardCalculator;
 use App\Services\Game\Combat\CombatSkillSelector;
 use App\Services\Game\DTOs\DamageContext;
@@ -18,7 +19,8 @@ class CombatRoundProcessor
     public function __construct(
         private CombatSkillSelector $skillSelector = new CombatSkillSelector,
         private CombatDamageCalculator $damageCalculator = new CombatDamageCalculator,
-        private CombatRewardCalculator $rewardCalculator = new CombatRewardCalculator
+        private CombatRewardCalculator $rewardCalculator = new CombatRewardCalculator,
+        private CombatEffectApplier $effectApplier = new CombatEffectApplier
     ) {}
 
     /**
@@ -44,13 +46,17 @@ class CombatRoundProcessor
 
         $monsters = $character->combat_monsters ?? [];
         $difficulty = $character->getDifficultyMultipliers();
+        $buffs = is_array($character->combat_buffs ?? null) ? $character->combat_buffs : [];
 
-        // 统计本回合开始时的怪物信息
+        [$monsters, $burnDamageDealt] = $this->effectApplier->tickMonsterStatuses($monsters);
+        $buffs = $this->effectApplier->tickCharacterBuffs($buffs);
+        $character->combat_monsters = $monsters;
+        $character->combat_buffs = $buffs === [] ? null : $buffs;
+
         $aliveMonstersAtStart = $this->getAliveMonsters($monsters);
         $monstersKilledThisRound = 0;
         $hpAtRoundStart = $this->getMonsterHpSnapshot($monsters);
 
-        // 使用技能选择器
         $skillResult = $this->skillSelector->resolveRoundSkill(
             $character,
             $requestedSkillIds,
@@ -62,33 +68,50 @@ class CombatRoundProcessor
         $skillDamage = $skillResult['skill_damage'];
         $skillsUsedThisRound = $skillResult['skills_used_this_round'];
         $newCooldowns = $skillResult['new_cooldowns'];
+        $castEffects = is_array($skillResult['cast_effects'] ?? null) ? $skillResult['cast_effects'] : [];
+        $isDefensive = (bool) ($skillResult['is_defensive'] ?? false);
 
-        $isCrit = (rand(1, 100) / 100) <= $charCritRate;
+        if ($isDefensive) {
+            $buffs = $this->effectApplier->applyShieldBuff($buffs, $castEffects);
+            $skillDamage = 0;
+        }
 
-        // 使用伤害计算器选择目标
-        $targetMonsters = $this->damageCalculator->selectRoundTargets($monsters, $isAoeSkill);
-        $useAoe = $isAoeSkill && ! empty($targetMonsters);
+        $critRate = min(0.95, $charCritRate + (float) ($castEffects['crit_bonus'] ?? 0));
+        $critDamage = $charCritDamage + (float) ($castEffects['crit_damage_bonus'] ?? 0);
+        $isCrit = (rand(1, 100) / 100) <= $critRate;
 
-        // 收集技能命中的目标位置
+        [$targetMonsters, $damageRatios] = $this->effectApplier->resolveTargetsWithFalloff(
+            $monsters,
+            $isAoeSkill,
+            $castEffects,
+            $this->damageCalculator
+        );
+
+        if (! empty($castEffects['chain_on_crit']) && $isCrit && $targetMonsters !== []) {
+            $chainTarget = $this->damageCalculator->selectChainTarget($monsters, $targetMonsters);
+            if ($chainTarget !== null) {
+                $targetMonsters[] = $chainTarget;
+                $damageRatios[] = (float) ($castEffects['chain_ratio'] ?? 0.5);
+            }
+        }
+
+        $useAoe = $isAoeSkill && count($targetMonsters) > 1
+            && (int) ($castEffects['bounce_count'] ?? 0) <= 0
+            && (int) ($castEffects['pierce_count'] ?? 0) <= 0;
+
         $skillTargetPositions = $this->damageCalculator->getSkillTargetPositions($targetMonsters);
 
-        // 伤害构成详情
-        $baseAttackDamage = 0;
-        $critDamageAmount = 0;
-        $aoeDamageAmount = 0;
-
-        // 计算基础攻击伤害
         $defenseReduction = config('game.combat.defense_reduction', 0.5);
         [$baseAttackDamage, $critDamageAmount] = $this->damageCalculator->computeBaseAttackDamage(
             $targetMonsters,
-            $skillDamage,
+            $isDefensive ? 0 : $skillDamage,
             $charAttack,
-            $charCritDamage,
-            $isCrit,
+            $critDamage,
+            $isCrit && ! $isDefensive,
             $defenseReduction
         );
 
-        // AOE 伤害计算
+        $aoeDamageAmount = 0;
         if ($useAoe) {
             $aoeMultiplier = config('game.combat.aoe_damage_multiplier', 0.7);
             $targetCount = count($targetMonsters);
@@ -97,46 +120,88 @@ class CombatRoundProcessor
             }
         }
 
-        // 使用伤害计算器处理伤害
-        [$monstersUpdated, $totalDamageDealt] = $this->damageCalculator->applyCharacterDamageToMonsters(
-            DamageContext::fromParams(
-                monsters: $monsters,
-                targetMonsters: $targetMonsters,
-                charAttack: $charAttack,
-                skillDamage: $skillDamage,
-                isCrit: $isCrit,
-                charCritDamage: $charCritDamage,
-                useAoe: $useAoe,
-            )
-        );
+        $totalDamageDealt = $burnDamageDealt;
+        $monstersUpdated = $monsters;
 
-        // 统计本回合杀死的怪物数量
+        if (! $isDefensive) {
+            $attackSkillDamage = $skillsUsedThisRound === [] ? 0 : $skillDamage;
+            [$monstersUpdated, $hitDamage] = $this->damageCalculator->applyCharacterDamageToMonsters(
+                DamageContext::fromParams(
+                    monsters: $monsters,
+                    targetMonsters: $targetMonsters,
+                    charAttack: $charAttack,
+                    skillDamage: $attackSkillDamage,
+                    isCrit: $isCrit,
+                    charCritDamage: $critDamage,
+                    useAoe: $useAoe,
+                    nonCritBonus: (float) ($castEffects['non_crit_bonus'] ?? 0),
+                    slowedDamageBonus: (float) ($castEffects['slowed_damage_bonus'] ?? 0),
+                    targetDamageRatios: $damageRatios,
+                )
+            );
+            $totalDamageDealt += $hitDamage;
+
+            if ($skillsUsedThisRound !== [] && $attackSkillDamage > 0) {
+                $monstersUpdated = $this->effectApplier->applyHitStatuses(
+                    $monstersUpdated,
+                    $targetMonsters,
+                    $castEffects,
+                    $attackSkillDamage
+                );
+            }
+        } else {
+            foreach ($monstersUpdated as $idx => $m) {
+                if (is_array($m)) {
+                    $monstersUpdated[$idx]['damage_taken'] = -1;
+                    $monstersUpdated[$idx]['was_attacked'] = false;
+                }
+            }
+        }
+
         $slotsWhereMonsterDiedThisRound = [];
         foreach ($monstersUpdated as $idx => $m) {
+            if (! is_array($m)) {
+                continue;
+            }
             if (($hpAtRoundStart[$idx] ?? 0) > 0 && ($m['hp'] ?? 0) <= 0) {
                 $monstersKilledThisRound++;
                 $slotsWhereMonsterDiedThisRound[] = $idx;
             }
         }
 
-        // 计算怪物反击伤害
-        $totalMonsterDamage = $this->damageCalculator->calculateMonsterCounterDamage($monstersUpdated, $charDefense);
-        $charHp -= $totalMonsterDamage;
+        $incoming = $this->effectApplier->calculateMonsterCounterDamage($monstersUpdated, $charDefense);
+        $reflected = 0;
+        $manaRestored = 0;
+        if ($incoming > 0) {
+            [$incoming, $buffs, $reflected, $manaRestored] = $this->effectApplier->absorbWithShield(
+                $incoming,
+                $buffs,
+                (int) ($charStats['max_mana'] ?? 0)
+            );
+        }
+        if ($reflected > 0) {
+            [$monstersUpdated, $reflectDealt] = $this->applyFlatDamageToAlive($monstersUpdated, $reflected);
+            $totalDamageDealt += $reflectDealt;
+        }
+        if ($manaRestored > 0) {
+            $currentMana = min((int) ($charStats['max_mana'] ?? $currentMana), $currentMana + $manaRestored);
+        }
+
+        $charHp -= $incoming;
 
         $character->combat_monsters = $monstersUpdated;
-        $newTotalHp = array_sum(array_column($monstersUpdated, 'hp'));
+        $character->combat_buffs = $buffs === [] ? null : $buffs;
+        $newTotalHp = array_sum(array_column(array_filter($monstersUpdated, 'is_array'), 'hp'));
 
         $newSkillsAggregated = $this->aggregateSkillsUsed($skillsUsedThisRound, $skillsUsedAggregated);
         $hasAliveMonster = $this->hasAliveMonster($monstersUpdated);
 
-        // 使用奖励计算器
         [$totalExperience, $totalCopper] = $this->rewardCalculator->calculateRoundDeathRewards(
             $monstersUpdated,
             $hpAtRoundStart,
             $difficulty
         );
 
-        // 获取第一个存活怪物的详细信息
         $firstAliveMonster = $this->getFirstAliveMonster($monstersUpdated);
         $roundDetails = $this->buildRoundDetails(
             RoundDetailsContext::fromParams(
@@ -152,7 +217,7 @@ class CombatRoundProcessor
                 aoeDamageAmount: $aoeDamageAmount,
                 totalDamageDealt: $totalDamageDealt,
                 defenseReduction: $defenseReduction,
-                totalMonsterDamage: $totalMonsterDamage,
+                totalMonsterDamage: $incoming,
                 aliveMonsterCount: count($aliveMonstersAtStart),
                 monstersKilledThisRound: $monstersKilledThisRound,
                 isCrit: $isCrit,
@@ -163,7 +228,7 @@ class CombatRoundProcessor
 
         return [
             'round_damage_dealt' => $totalDamageDealt,
-            'round_damage_taken' => $totalMonsterDamage,
+            'round_damage_taken' => $incoming,
             'new_monster_hp' => $newTotalHp,
             'new_char_hp' => $charHp,
             'new_char_mana' => $currentMana,
@@ -182,12 +247,38 @@ class CombatRoundProcessor
     }
 
     /**
+     * @param  array<int, array<string, mixed>|null>  $monsters
+     * @return array{0: array<int, array<string, mixed>|null>, 1: int}
+     */
+    private function applyFlatDamageToAlive(array $monsters, int $damage): array
+    {
+        if ($damage <= 0) {
+            return [$monsters, 0];
+        }
+
+        $dealt = 0;
+        foreach ($monsters as $idx => $m) {
+            if (! is_array($m) || ($m['hp'] ?? 0) <= 0) {
+                continue;
+            }
+            $actual = min($damage, (int) $m['hp']);
+            $monsters[$idx]['hp'] = (int) $m['hp'] - $actual;
+            $monsters[$idx]['damage_taken'] = max(0, (int) ($monsters[$idx]['damage_taken'] ?? 0)) + $actual;
+            $monsters[$idx]['was_attacked'] = true;
+            $dealt += $actual;
+            break;
+        }
+
+        return [$monsters, $dealt];
+    }
+
+    /**
      * @param  array<int, array<string, mixed>>  $monsters
      * @return array<int, array<string, mixed>>
      */
     private function getAliveMonsters(array $monsters): array
     {
-        return array_filter($monsters, fn ($m) => ($m['hp'] ?? 0) > 0);
+        return array_filter($monsters, fn ($m) => is_array($m) && ($m['hp'] ?? 0) > 0);
     }
 
     /**
@@ -198,7 +289,7 @@ class CombatRoundProcessor
     {
         $hpAtRoundStart = [];
         foreach ($monsters as $idx => $m) {
-            $hpAtRoundStart[$idx] = $m['hp'] ?? 0;
+            $hpAtRoundStart[$idx] = is_array($m) ? ($m['hp'] ?? 0) : 0;
         }
 
         return $hpAtRoundStart;
@@ -211,7 +302,7 @@ class CombatRoundProcessor
     private function getFirstAliveMonster(array $monstersUpdated): ?array
     {
         foreach ($monstersUpdated as $m) {
-            if (($m['hp'] ?? 0) > 0) {
+            if (is_array($m) && ($m['hp'] ?? 0) > 0) {
                 return $m;
             }
         }
@@ -293,7 +384,7 @@ class CombatRoundProcessor
     private function hasAliveMonster(array $monstersUpdated): bool
     {
         foreach ($monstersUpdated as $m) {
-            if (($m['hp'] ?? 0) > 0) {
+            if (is_array($m) && ($m['hp'] ?? 0) > 0) {
                 return true;
             }
         }

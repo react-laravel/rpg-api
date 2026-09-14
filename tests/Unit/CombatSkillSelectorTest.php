@@ -94,4 +94,100 @@ class CombatSkillSelectorTest extends TestCase
         $afterRecast = $selector->cooldownsAfterPulse($afterWait, 7, 1);
         $this->assertSame([7 => 1], $afterRecast);
     }
+
+    public function test_damage_bonus_effects_stack_additively(): void
+    {
+        $selector = new CombatSkillSelector;
+        $merged = $selector->mergeEffectMaps(
+            ['damage_bonus' => 0.3],
+            ['damage_bonus' => 0.4, 'burn_duration' => 3]
+        );
+
+        $this->assertEqualsWithDelta(0.7, $merged['damage_bonus'], 0.001);
+        $this->assertSame(3, $merged['burn_duration']);
+    }
+
+    public function test_build_skill_candidate_applies_cooldown_reduction_and_single_target_ratio(): void
+    {
+        $selector = new CombatSkillSelector;
+        $skill = (object) [
+            'id' => 9,
+            'name' => '冰霜新星',
+            'type' => 'active',
+            'effect_key' => 'frost-nova',
+            'skill_line' => 'mage_frost_nova',
+            'target_type' => 'all',
+            'base_damage' => 45,
+            'mana_cost' => 18,
+            'cooldown' => 4,
+            'effects' => [],
+            'icon' => null,
+        ];
+        $passives = collect([
+            (object) ['skill' => (object) [
+                'skill_line' => 'mage_frost_nova',
+                'effect_key' => 'frost-nova',
+                'name' => '冰霜尖刺',
+                'effects' => ['single_target_ratio' => 3.0, 'cooldown_reduction' => 1],
+            ]],
+        ]);
+
+        $candidate = $selector->buildSkillCandidate($skill, $passives);
+
+        $this->assertFalse($candidate['is_aoe']);
+        $this->assertSame(135, $candidate['damage']);
+        $this->assertSame(3, $candidate['cooldown']);
+        $this->assertFalse($candidate['is_defensive']);
+    }
+
+    public function test_shield_skill_is_marked_defensive_with_zero_damage(): void
+    {
+        $selector = new CombatSkillSelector;
+        $skill = (object) [
+            'id' => 11,
+            'name' => '魔法护盾',
+            'type' => 'active',
+            'effect_key' => 'shield',
+            'skill_line' => 'mage_shield',
+            'target_type' => 'single',
+            'base_damage' => 0,
+            'mana_cost' => 20,
+            'cooldown' => 15,
+            'effects' => ['shield_amount' => 100, 'duration' => 8],
+            'icon' => null,
+        ];
+
+        $candidate = $selector->buildSkillCandidate($skill, collect());
+
+        $this->assertTrue($candidate['is_defensive']);
+        $this->assertSame(0, $candidate['damage']);
+        $this->assertSame(100, $candidate['cast_effects']['shield_amount']);
+        $this->assertSame(8, $candidate['cast_effects']['shield_duration']);
+    }
+
+    public function test_select_optimal_skill_prefers_offensive_over_shield(): void
+    {
+        $selector = new CombatSkillSelector;
+        $selected = $selector->selectOptimalSkill([
+            [
+                'damage' => 0,
+                'mana_cost' => 20,
+                'cooldown' => 15,
+                'is_aoe' => false,
+                'is_defensive' => true,
+                'cast_effects' => ['shield_amount' => 100],
+            ],
+            [
+                'damage' => 16,
+                'mana_cost' => 10,
+                'cooldown' => 0,
+                'is_aoe' => false,
+                'is_defensive' => false,
+                'cast_effects' => [],
+            ],
+        ], 1, 0, 100, 20);
+
+        $this->assertSame(16, $selected['damage']);
+        $this->assertFalse($selected['is_defensive']);
+    }
 }

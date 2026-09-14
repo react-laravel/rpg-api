@@ -129,8 +129,10 @@ trait CharacterCombatStats
         $baseMana = $base[$this->class] ?? ($base['default'] ?? 50);
         $multiplier = $manaConfig['energy_multiplier'] ?? 3;
         $equipmentBonus = (int) $this->getEquipmentBonus('max_mana');
+        $keyPassive = $this->getKeyPassiveBonuses();
+        $total = (int) ($baseMana + $this->energy * $multiplier) + $equipmentBonus;
 
-        return (int) ($baseMana + $this->energy * $multiplier) + $equipmentBonus;
+        return (int) round($total * (1 + (float) ($keyPassive['mana_bonus'] ?? 0)));
     }
 
     /**
@@ -150,7 +152,51 @@ trait CharacterCombatStats
      */
     public function getAttack(): int
     {
-        return (int) ($this->getBaseAttack() + $this->getEquipmentBonus('attack'));
+        $base = (int) ($this->getBaseAttack() + $this->getEquipmentBonus('attack'));
+        $keyPassive = $this->getKeyPassiveBonuses();
+
+        return (int) round($base * (1 + (float) ($keyPassive['spell_damage_bonus'] ?? 0)));
+    }
+
+    /**
+     * 关键被动（如奥术共鸣）：已点满技能线提供法力/魔伤加成。
+     *
+     * @return array{mana_bonus: float, spell_damage_bonus: float}
+     */
+    private function getKeyPassiveBonuses(): array
+    {
+        static $empty = ['mana_bonus' => 0.0, 'spell_damage_bonus' => 0.0];
+
+        if (! method_exists($this, 'skills')) {
+            return $empty;
+        }
+
+        $learned = $this->skills()->with('skill')->get()->filter(fn ($cs) => $cs->skill !== null);
+        $keyPassive = $learned->first(fn ($cs) => ($cs->skill->skill_stage ?? null) === 'key_passive');
+        if ($keyPassive === null) {
+            return $empty;
+        }
+
+        $effects = is_array($keyPassive->skill->effects ?? null) ? $keyPassive->skill->effects : [];
+        $manaPerLine = (float) ($effects['mana_per_line'] ?? 0);
+        $spellPerLine = (float) ($effects['spell_damage_per_line'] ?? 0);
+        $maxLines = (int) ($effects['max_lines'] ?? 6);
+        if ($manaPerLine <= 0 && $spellPerLine <= 0) {
+            return $empty;
+        }
+
+        $completedLines = $learned
+            ->filter(fn ($cs) => (int) ($cs->skill->node_tier ?? 0) === 2)
+            ->map(fn ($cs) => $cs->skill->skill_line)
+            ->filter()
+            ->unique()
+            ->count();
+        $lines = min($maxLines, $completedLines);
+
+        return [
+            'mana_bonus' => $manaPerLine * $lines,
+            'spell_damage_bonus' => $spellPerLine * $lines,
+        ];
     }
 
     /**

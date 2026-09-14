@@ -233,6 +233,7 @@ class GameMonsterService
         $character->combat_rounds = 0;
         $character->combat_skills_used = null;
         $character->combat_skill_cooldowns = null;
+        $character->combat_buffs = null;
         $character->combat_started_at = now();
         $character->save();
 
