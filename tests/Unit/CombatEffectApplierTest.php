@@ -25,7 +25,7 @@ class CombatEffectApplierTest extends TestCase
                 monsters: $monsters,
                 targetMonsters: $monsters,
                 charAttack: 10,
-                skillDamage: 20,
+                skillDamage: 300,
                 isCrit: true,
                 charCritDamage: 2.0,
             )
@@ -49,8 +49,10 @@ class CombatEffectApplierTest extends TestCase
 
         $this->assertSame(8, $autoAttack);
         $this->assertSame(0, $critExtra);
-        $this->assertNotSame(150, $autoAttack);
-        $this->assertNotSame(158, $autoAttack);
+
+        $fireballHit = $calculator->hitAfterDefense(10, 160, 0, 0.5);
+        $this->assertSame(16, $fireballHit);
+        $this->assertSame(10, $calculator->hitAfterDefense(10, 0, 0, 0.5));
     }
 
     public function test_burn_ticks_deal_damage_each_pulse(): void
@@ -177,7 +179,7 @@ class CombatEffectApplierTest extends TestCase
             DamageContext::fromParams(
                 monsters: $monsters,
                 targetMonsters: $targets,
-                charAttack: 0,
+                charAttack: 100,
                 skillDamage: 100,
                 targetDamageRatios: $ratios,
             )

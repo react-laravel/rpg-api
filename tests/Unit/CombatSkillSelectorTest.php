@@ -117,9 +117,9 @@ class CombatSkillSelectorTest extends TestCase
             'effect_key' => 'frost-nova',
             'skill_line' => 'mage_frost_nova',
             'target_type' => 'all',
-            'base_damage' => 45,
-            'mana_cost' => 18,
-            'cooldown' => 4,
+            'base_damage' => 150,
+            'mana_cost' => 16,
+            'cooldown' => 5,
             'effects' => [],
             'icon' => null,
         ];
@@ -135,9 +135,9 @@ class CombatSkillSelectorTest extends TestCase
         $candidate = $selector->buildSkillCandidate($skill, $passives);
 
         $this->assertTrue($candidate['is_aoe']);
-        $this->assertSame(45, $candidate['damage']);
+        $this->assertSame(150, $candidate['damage']);
         $this->assertEqualsWithDelta(3.0, $candidate['cast_effects']['single_target_ratio'], 0.001);
-        $this->assertSame(3, $candidate['cooldown']);
+        $this->assertSame(4, $candidate['cooldown']);
         $this->assertFalse($candidate['is_defensive']);
     }
 

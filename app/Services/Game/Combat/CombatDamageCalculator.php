@@ -77,10 +77,7 @@ class CombatDamageCalculator
 
             $mDefense = (int) ($m['defense'] ?? 0);
             $defenseReduction = config('game.combat.defense_reduction', 0.5);
-            $baseDamage = max(0, $charAttack - $mDefense * $defenseReduction);
-            $raw = $skillDamage > 0
-                ? (float) ($baseDamage + $skillDamage)
-                : (float) $baseDamage;
+            $raw = (float) $this->hitAfterDefense($charAttack, $skillDamage, $mDefense, $defenseReduction);
 
             if ($isCrit) {
                 $raw *= $charCritDamage;
@@ -134,17 +131,36 @@ class CombatDamageCalculator
         }
 
         $firstTarget = reset($targetMonsters);
-        $targetDefense = $firstTarget['defense'] ?? 0;
-        $baseAttackDamage = max(0, (int) ($charAttack - $targetDefense * $defenseReduction));
-        $combined = $baseAttackDamage + max(0, $skillDamage);
+        $targetDefense = (int) ($firstTarget['defense'] ?? 0);
+        $autoAttack = $this->hitAfterDefense($charAttack, 0, $targetDefense, $defenseReduction);
+        $applied = $this->hitAfterDefense($charAttack, $skillDamage, $targetDefense, $defenseReduction);
 
         if (! $isCrit) {
-            return [$baseAttackDamage, 0];
+            return [$autoAttack, 0];
         }
 
-        $critted = (int) round($combined * $charCritDamage);
+        $critted = (int) round($applied * $charCritDamage);
 
-        return [$baseAttackDamage, max(0, $critted - $combined)];
+        return [$autoAttack, max(0, $critted - $applied)];
+    }
+
+    /**
+     * 技能威力以攻击力百分之一为单位：180 = 攻击力的 180%。未施放技能时按 100% 普攻。
+     */
+    public function skillAttackMultiplier(int $skillPower): float
+    {
+        if ($skillPower <= 0) {
+            return 1.0;
+        }
+
+        return $skillPower / 100.0;
+    }
+
+    public function hitAfterDefense(int $charAttack, int $skillPower, int $defense, float $defenseReduction): int
+    {
+        $multiplier = $this->skillAttackMultiplier($skillPower);
+
+        return max(0, (int) round($charAttack * $multiplier - $defense * $defenseReduction));
     }
 
     /**

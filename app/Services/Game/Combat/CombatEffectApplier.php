@@ -184,7 +184,7 @@ class CombatEffectApplier
      * @param  array<string, mixed>  $castEffects
      * @return array<int, array<string, mixed>|null>
      */
-    public function applyHitStatuses(array $monsters, array $targetMonsters, array $castEffects, int $skillDamage): array
+    public function applyHitStatuses(array $monsters, array $targetMonsters, array $castEffects, int $skillDamage, int $charAttack = 0): array
     {
         $targetSlots = [];
         foreach ($targetMonsters as $target) {
@@ -212,8 +212,9 @@ class CombatEffectApplier
             $slowChance = 1.0;
         }
 
+        $skillMultiplier = $skillDamage > 0 ? $skillDamage / 100.0 : 0.0;
         $burnDamage = $burnTicks > 0
-            ? max(1, (int) round($skillDamage * self::BURN_DAMAGE_RATIO))
+            ? max(1, (int) round($charAttack * $skillMultiplier * self::BURN_DAMAGE_RATIO))
             : 0;
 
         foreach ($monsters as $idx => $monster) {

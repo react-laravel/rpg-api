@@ -253,10 +253,9 @@ class CombatSkillSelector
             'ailment_duration' => (int) ($mergedEffects['ailment_duration'] ?? 0),
         ];
 
-        // 无强化时的连锁闪电：默认弹跳 3 次
-        if (($skill->effect_key ?? '') === 'chain-lightning' && $castEffects['bounce_count'] <= 0 && $isAoe) {
+        // 连锁闪电默认弹跳 3 个目标，不当全体陨石用
+        if (($skill->effect_key ?? '') === 'chain-lightning' && $castEffects['bounce_count'] <= 0) {
             $castEffects['bounce_count'] = 3;
-            $isAoe = false;
         }
         if ($castEffects['bounce_count'] > 0 || $castEffects['pierce_count'] > 0) {
             $isAoe = false;
@@ -302,22 +301,22 @@ class CombatSkillSelector
         if ($aliveMonsterCount >= 2) {
             $aoeSkills = array_values(array_filter($pool, fn ($s) => $s['is_aoe'] || ($s['cast_effects']['bounce_count'] ?? 0) > 0 || ($s['cast_effects']['pierce_count'] ?? 0) > 0));
             if ($aoeSkills !== []) {
-                usort($aoeSkills, fn (array $a, array $b) => $this->compareSkillsByCombatScore($a, $b, $aliveMonsterCount, $totalMonsterHp));
+                usort($aoeSkills, fn (array $a, array $b) => $this->compareSkillsByCombatScore($a, $b, $aliveMonsterCount, $totalMonsterHp, $charAttack));
 
                 return $aoeSkills[0];
             }
         }
 
         if ($totalMonsterHp <= $charAttack * 2) {
-            usort($pool, function (array $firstSkill, array $secondSkill) use ($totalMonsterHp) {
+            usort($pool, function (array $firstSkill, array $secondSkill) use ($totalMonsterHp, $charAttack) {
                 if ($firstSkill['mana_cost'] === 0 && $secondSkill['mana_cost'] > 0) {
                     return -1;
                 }
                 if ($secondSkill['mana_cost'] === 0 && $firstSkill['mana_cost'] > 0) {
                     return 1;
                 }
-                $effectiveDamageA = min((int) $firstSkill['damage'], $totalMonsterHp);
-                $effectiveDamageB = min((int) $secondSkill['damage'], $totalMonsterHp);
+                $effectiveDamageA = min($this->estimatedSkillHit($firstSkill, $charAttack), $totalMonsterHp);
+                $effectiveDamageB = min($this->estimatedSkillHit($secondSkill, $charAttack), $totalMonsterHp);
                 $efficiencyA = $firstSkill['mana_cost'] > 0 ? $effectiveDamageA / $firstSkill['mana_cost'] : $effectiveDamageA * 10;
                 $efficiencyB = $secondSkill['mana_cost'] > 0 ? $effectiveDamageB / $secondSkill['mana_cost'] : $effectiveDamageB * 10;
 
@@ -333,12 +332,13 @@ class CombatSkillSelector
 
         $skillsWithDamage = array_values(array_filter($pool, fn ($s) => $s['damage'] > 0));
         if ($skillsWithDamage !== []) {
-            usort($skillsWithDamage, fn (array $a, array $b) => $this->compareSkillsByCombatScore($a, $b, $aliveMonsterCount, $totalMonsterHp));
+            usort($skillsWithDamage, fn (array $a, array $b) => $this->compareSkillsByCombatScore($a, $b, $aliveMonsterCount, $totalMonsterHp, $charAttack));
 
             $bestSkill = $skillsWithDamage[0];
-            $bestEfficiency = $bestSkill['mana_cost'] > 0 ? $bestSkill['damage'] / $bestSkill['mana_cost'] : $bestSkill['damage'];
+            $bestHit = $this->estimatedSkillHit($bestSkill, $charAttack);
+            $bestEfficiency = $bestSkill['mana_cost'] > 0 ? $bestHit / $bestSkill['mana_cost'] : $bestHit;
 
-            if ($bestEfficiency >= $baseAttackDamage * 0.5 || $bestSkill['damage'] > $totalMonsterHp * 0.5) {
+            if ($bestEfficiency >= $baseAttackDamage * 0.5 || $bestHit > $totalMonsterHp * 0.5) {
                 return $bestSkill;
             }
         }
@@ -472,10 +472,10 @@ class CombatSkillSelector
      * @param  array{damage: int, mana_cost: int, cooldown?: int, is_aoe?: bool, cast_effects?: array}  $firstSkill
      * @param  array{damage: int, mana_cost: int, cooldown?: int, is_aoe?: bool, cast_effects?: array}  $secondSkill
      */
-    private function compareSkillsByCombatScore(array $firstSkill, array $secondSkill, int $aliveMonsterCount, int $totalMonsterHp): int
+    private function compareSkillsByCombatScore(array $firstSkill, array $secondSkill, int $aliveMonsterCount, int $totalMonsterHp, int $charAttack = 0): int
     {
-        $firstScore = $this->calculateCombatScore($firstSkill, $aliveMonsterCount, $totalMonsterHp);
-        $secondScore = $this->calculateCombatScore($secondSkill, $aliveMonsterCount, $totalMonsterHp);
+        $firstScore = $this->calculateCombatScore($firstSkill, $aliveMonsterCount, $totalMonsterHp, $charAttack);
+        $secondScore = $this->calculateCombatScore($secondSkill, $aliveMonsterCount, $totalMonsterHp, $charAttack);
 
         if (abs($firstScore - $secondScore) > 0.1) {
             return $secondScore <=> $firstScore;
@@ -487,7 +487,20 @@ class CombatSkillSelector
     /**
      * @param  array{damage: int, mana_cost: int, cooldown?: int, is_aoe?: bool, cast_effects?: array}  $skill
      */
-    private function calculateCombatScore(array $skill, int $aliveMonsterCount, int $totalMonsterHp): float
+    private function estimatedSkillHit(array $skill, int $charAttack): float
+    {
+        $power = (int) ($skill['damage'] ?? 0);
+        if ($power <= 0) {
+            return 0.0;
+        }
+
+        return $charAttack * ($power / 100.0);
+    }
+
+    /**
+     * @param  array{damage: int, mana_cost: int, cooldown?: int, is_aoe?: bool, cast_effects?: array}  $skill
+     */
+    private function calculateCombatScore(array $skill, int $aliveMonsterCount, int $totalMonsterHp, int $charAttack = 0): float
     {
         $effects = $skill['cast_effects'] ?? [];
         $multiTarget = ($skill['is_aoe'] ?? false)
@@ -501,7 +514,7 @@ class CombatSkillSelector
             $targetCount = min($aliveMonsterCount, max(1, (int) $effects['pierce_count']));
         }
 
-        $expectedDamage = (float) $skill['damage'] * $targetCount;
+        $expectedDamage = $this->estimatedSkillHit($skill, $charAttack) * $targetCount;
         if ($totalMonsterHp > 0) {
             $expectedDamage = min($expectedDamage, (float) $totalMonsterHp);
         }

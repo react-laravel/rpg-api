@@ -199,9 +199,11 @@ return [
     |--------------------------------------------------------------------------
     | 基础攻击由 strength 字段决定（前端显示为“攻击力”）：
     | - 攻击 = strength × attack.multiplier。
+    | - 普攻命中 = max(0, 攻击 − 防御×defense_reduction)。
+    | - 技能命中 = max(0, 攻击 × 技能倍率 − 防御×defense_reduction)。技能 base_damage 为百分数，160 = 160%。
+    | - 减速：该怪反击伤害 ×0.5；冻结：该怪本拍不反击。
     | - 防御 = 体力×vitality_multiplier + 敏捷×dexterity_multiplier。
     | - 基础暴击 = 敏捷×dexterity_multiplier，总暴击率有 cap 上限。
-    | 暴击封顶后敏捷仍可提升防御，部分装备有 required_dexterity 穿戴需求。
     |--------------------------------------------------------------------------
     */
     'combat' => [

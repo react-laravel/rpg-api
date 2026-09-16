@@ -112,12 +112,19 @@ class CombatRoundProcessor
             $defenseReduction
         );
 
+        $firstTarget = $targetMonsters === [] ? null : reset($targetMonsters);
+        $firstTargetDefense = is_array($firstTarget) ? (int) ($firstTarget['defense'] ?? 0) : 0;
+        $skillHitForLog = (! $isDefensive && $skillDamage > 0)
+            ? $this->damageCalculator->hitAfterDefense($charAttack, $skillDamage, $firstTargetDefense, $defenseReduction)
+            : 0;
+
         $aoeDamageAmount = 0;
         if ($useAoe) {
             $aoeMultiplier = config('game.combat.aoe_damage_multiplier', 0.7);
             $targetCount = count($targetMonsters);
+            $referenceHit = $skillHitForLog > 0 ? $skillHitForLog : $baseAttackDamage;
             if ($targetCount > 1) {
-                $aoeDamageAmount = (int) ($baseAttackDamage * (1 - $aoeMultiplier) * $targetCount);
+                $aoeDamageAmount = (int) ($referenceHit * (1 - $aoeMultiplier) * $targetCount);
             }
         }
 
@@ -147,7 +154,8 @@ class CombatRoundProcessor
                     $monstersUpdated,
                     $targetMonsters,
                     $castEffects,
-                    $attackSkillDamage
+                    $attackSkillDamage,
+                    $charAttack
                 );
             }
         } else {
@@ -220,7 +228,7 @@ class CombatRoundProcessor
                 charCritRate: $charCritRate,
                 charCritDamage: $charCritDamage,
                 baseAttackDamage: $baseAttackDamage,
-                skillDamage: $skillDamage,
+                skillDamage: $skillHitForLog,
                 critDamageAmount: $critDamageAmount,
                 aoeDamageAmount: $aoeDamageAmount,
                 totalDamageDealt: $totalDamageDealt,
