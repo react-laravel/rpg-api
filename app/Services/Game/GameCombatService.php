@@ -357,6 +357,7 @@ class GameCombatService
             'monster_hp_before_round' => $monsterHp,
             'damage_dealt' => $roundResult['round_damage_dealt'],
             'damage_taken' => $roundResult['round_damage_taken'],
+            'is_crit' => (bool) ($roundResult['round_details']['battle']['is_crit'] ?? false),
             'rounds' => 0,
             'experience_gained' => $roundResult['experience_gained'] ?? 0,
             'copper_gained' => $roundResult['copper_gained'] ?? 0,
