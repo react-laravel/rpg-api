@@ -20,30 +20,44 @@ class InventoryItemCalculator
     private const SHOP_BUY_TO_SELL_MULTIPLIER = 2;
 
     /**
-     * 属性价格系数（每 1 点属性对应的基础铜币）
+     * 属性价格系数（每 1 点属性对应的基础铜币）。
+     * 暴击率/暴伤按百分点计价，避免 1% 暴击比几十防御还贵一个数量级。
      */
     private const STAT_PRICES = [
-        'attack' => 3,
-        'defense' => 2,
-        'max_hp' => 0.5,
-        'max_mana' => 0.3,
-        'crit_rate' => 500,
-        'crit_damage' => 200,
+        'attack' => 10,
+        'defense' => 8,
+        'max_hp' => 3,
+        'max_mana' => 2,
+        'strength' => 8,
+        'dexterity' => 8,
+        'vitality' => 6,
+        'energy' => 6,
+        'crit_rate' => 25,
+        'crit_damage' => 12,
     ];
 
     /**
-     * 物品类型价格系数
+     * 物品类型价格系数（部位差距收窄，避免鞋带几十铜、武器几万铜）
      */
     private const TYPE_PRICE_MULTIPLIERS = [
-        'weapon' => 1.2,
+        'weapon' => 1.15,
         'helmet' => 1.0,
-        'armor' => 1.3,
-        'gloves' => 0.8,
-        'boots' => 0.8,
-        'belt' => 0.7,
-        'ring' => 1.5,
-        'amulet' => 1.8,
+        'armor' => 1.1,
+        'gloves' => 0.95,
+        'boots' => 0.95,
+        'belt' => 0.95,
+        'ring' => 1.15,
+        'amulet' => 1.2,
         'gem' => 1.0,
+    ];
+
+    /** 按品质给出售价保底，避免一堆词缀的稀有装只值十几铜 */
+    private const QUALITY_SELL_FLOOR = [
+        'common' => 6,
+        'magic' => 18,
+        'rare' => 45,
+        'legendary' => 100,
+        'mythic' => 220,
     ];
 
     /**
@@ -153,7 +167,7 @@ class InventoryItemCalculator
             'gem' => $stats !== []
                 ? $this->calculateGemBuyPriceFromStats($stats)
                 : $this->calculateGemBuyPrice($item),
-            default => max(1, $this->calculateEquipmentFullPrice($item, $stats, $quality, $sockets)),
+            default => max(1, $this->calculateEquipmentFullPrice($item, $stats, $quality, $sockets, 0)),
         };
     }
 
@@ -176,6 +190,7 @@ class InventoryItemCalculator
             $this->resolvePricingStats($item),
             $item->quality ?? 'common',
             (int) ($item->sockets ?? 0),
+            count($item->affixes ?? []),
         );
     }
 
@@ -187,8 +202,9 @@ class InventoryItemCalculator
         array $stats,
         string $quality = 'common',
         int $sockets = 0,
+        int $affixCount = 0,
     ): int {
-        return max(1, $this->calculateEquipmentFullPrice($definition, $stats, $quality, $sockets));
+        return max(1, $this->calculateEquipmentFullPrice($definition, $stats, $quality, $sockets, $affixCount));
     }
 
     private function calculateEquipmentSellPrice(GameItem $item): int
@@ -198,14 +214,18 @@ class InventoryItemCalculator
             return 0;
         }
 
+        $quality = $item->quality ?? 'common';
         $fullPrice = $this->calculateEquipmentFullPrice(
             $definition,
             $this->resolvePricingStats($item),
-            $item->quality ?? 'common',
+            $quality,
             (int) ($item->sockets ?? 0),
+            count($item->affixes ?? []),
         );
 
-        return max(1, (int) ($fullPrice * self::EQUIPMENT_SELL_RATIO));
+        $floor = self::QUALITY_SELL_FLOOR[$quality] ?? 6;
+
+        return max($floor, (int) ($fullPrice * self::EQUIPMENT_SELL_RATIO));
     }
 
     /**
@@ -216,6 +236,7 @@ class InventoryItemCalculator
         array $stats,
         string $quality,
         int $sockets,
+        int $affixCount = 0,
     ): int {
         if ($stats === [] && is_array($definition->base_stats)) {
             $stats = $this->normalizePricingStats($definition->base_stats);
@@ -232,9 +253,10 @@ class InventoryItemCalculator
         $typeMultiplier = self::TYPE_PRICE_MULTIPLIERS[$type] ?? 1.0;
         $requiredLevel = $definition->required_level ?? 1;
         $levelMultiplier = 1 + ($requiredLevel / 50);
-        $socketBonus = $sockets * 10;
+        $affixMultiplier = 1 + 0.18 * max(0, $affixCount);
+        $socketBonus = $sockets * 25;
 
-        return (int) (($basePrice * $qualityMultiplier * $typeMultiplier * $levelMultiplier) + $socketBonus);
+        return (int) (($basePrice * $qualityMultiplier * $typeMultiplier * $levelMultiplier * $affixMultiplier) + $socketBonus);
     }
 
     private function calculateGemSellPrice(GameItemDefinition $definition): int
