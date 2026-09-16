@@ -16,7 +16,6 @@ class CharacterExperienceLevelCapTest extends TestCase
         GameCharacter::query()->create([
             'user_id' => 7,
             'name' => '高等级测试',
-            'class' => 'warrior',
             'gender' => 'male',
             'level' => 105,
             'experience' => 19019000,
@@ -35,7 +34,6 @@ class CharacterExperienceLevelCapTest extends TestCase
         $character = GameCharacter::query()->create([
             'user_id' => 8,
             'name' => '冲级测试',
-            'class' => 'mage',
             'gender' => 'female',
             'level' => 105,
             'experience' => 19019000,

@@ -211,10 +211,6 @@ class CombatSkillSelector
         }
 
         $singleRatio = (float) ($mergedEffects['single_target_ratio'] ?? 0);
-        if ($singleRatio > 0) {
-            $isAoe = false;
-            $damage = (int) round($damage * $singleRatio);
-        }
 
         $cooldown = (int) $skill->cooldown;
         if (isset($mergedEffects['cooldown_override'])) {
@@ -250,6 +246,7 @@ class CombatSkillSelector
             'slow_duration' => (int) ($mergedEffects['slow_duration'] ?? 0),
             'ground_slow_duration' => (int) ($mergedEffects['ground_slow_duration'] ?? 0),
             'extra_meteors' => (int) ($mergedEffects['extra_meteors'] ?? 0),
+            'single_target_ratio' => $singleRatio,
             'apply_burn' => (bool) ($mergedEffects['apply_burn'] ?? false),
             'apply_freeze' => (bool) ($mergedEffects['apply_freeze'] ?? false),
             'apply_shock' => (bool) ($mergedEffects['apply_shock'] ?? false),

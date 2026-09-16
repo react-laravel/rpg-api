@@ -35,6 +35,24 @@ class CombatEffectApplierTest extends TestCase
         $this->assertSame(440, $updated[0]['hp']);
     }
 
+    public function test_damage_breakdown_keeps_auto_attack_and_skill_separate(): void
+    {
+        $calculator = new CombatDamageCalculator;
+        [$autoAttack, $critExtra] = $calculator->computeBaseAttackDamage(
+            [['defense' => 8]],
+            150,
+            12,
+            1.5,
+            false,
+            0.5
+        );
+
+        $this->assertSame(8, $autoAttack);
+        $this->assertSame(0, $critExtra);
+        $this->assertNotSame(150, $autoAttack);
+        $this->assertNotSame(158, $autoAttack);
+    }
+
     public function test_burn_ticks_deal_damage_each_pulse(): void
     {
         $applier = new CombatEffectApplier;
@@ -83,6 +101,27 @@ class CombatEffectApplierTest extends TestCase
         $this->assertSame([], $nextBuffs);
         $this->assertSame(15, $reflected);
         $this->assertSame(20, $mana);
+
+        $summary = $applier->summarizeShield([], 30, true, 30);
+        $this->assertSame(0, $summary['hp']);
+        $this->assertSame(30, $summary['max_hp']);
+        $this->assertTrue($summary['broke']);
+        $this->assertSame(30, $summary['absorbed']);
+    }
+
+    public function test_summarize_shield_keeps_active_barrier(): void
+    {
+        $applier = new CombatEffectApplier;
+        $summary = $applier->summarizeShield([
+            'shield_hp' => 40,
+            'shield_max_hp' => 100,
+            'shield_ticks' => 5,
+        ]);
+
+        $this->assertSame(40, $summary['hp']);
+        $this->assertSame(100, $summary['max_hp']);
+        $this->assertSame(5, $summary['ticks']);
+        $this->assertFalse($summary['broke']);
     }
 
     public function test_pierce_targets_apply_falloff_ratios(): void
@@ -106,5 +145,47 @@ class CombatEffectApplierTest extends TestCase
         $this->assertSame(0, $targets[0]['position']);
         $this->assertEqualsWithDelta(1.0, $ratios[0], 0.001);
         $this->assertEqualsWithDelta(0.8, $ratios[1], 0.001);
+    }
+
+    public function test_aoe_single_target_ratio_still_hits_every_monster(): void
+    {
+        $applier = new CombatEffectApplier;
+        $calculator = new CombatDamageCalculator;
+        $monsters = [
+            ['position' => 0, 'hp' => 800, 'defense' => 0],
+            ['position' => 1, 'hp' => 400, 'defense' => 0],
+            ['position' => 2, 'hp' => 600, 'defense' => 0],
+        ];
+
+        [$targets, $ratios] = $applier->resolveTargetsWithFalloff(
+            $monsters,
+            true,
+            ['single_target_ratio' => 3.5],
+            $calculator
+        );
+
+        $this->assertCount(3, $targets);
+        $ratioBySlot = [];
+        foreach (array_values($targets) as $i => $target) {
+            $ratioBySlot[(int) $target['position']] = $ratios[$i];
+        }
+        $this->assertEqualsWithDelta(3.5, $ratioBySlot[1], 0.001);
+        $this->assertEqualsWithDelta(0.7, $ratioBySlot[0], 0.001);
+        $this->assertEqualsWithDelta(0.7, $ratioBySlot[2], 0.001);
+
+        [$updated, $dealt] = $calculator->applyCharacterDamageToMonsters(
+            DamageContext::fromParams(
+                monsters: $monsters,
+                targetMonsters: $targets,
+                charAttack: 0,
+                skillDamage: 100,
+                targetDamageRatios: $ratios,
+            )
+        );
+
+        $this->assertSame(350, $updated[1]['damage_taken']);
+        $this->assertSame(70, $updated[0]['damage_taken']);
+        $this->assertSame(70, $updated[2]['damage_taken']);
+        $this->assertSame(490, $dealt);
     }
 }

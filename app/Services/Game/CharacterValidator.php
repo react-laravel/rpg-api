@@ -52,23 +52,27 @@ class CharacterValidator
     }
 
     /**
-     * Get class base stats
+     * Get starting character stats
+     *
+     * @return array{strength: int, dexterity: int, vitality: int, energy: int}
      */
-    public function getClassBaseStats(string $class): array
+    public function getBaseStats(): array
     {
-        return config("game.class_base_stats.{$class}", [
-            'strength' => 2,
-            'dexterity' => 3,
-            'vitality' => 2,
-            'energy' => 2,
-        ]);
+        $stats = config('game.character_base_stats', []);
+
+        return [
+            'strength' => (int) ($stats['strength'] ?? 3),
+            'dexterity' => (int) ($stats['dexterity'] ?? 4),
+            'vitality' => (int) ($stats['vitality'] ?? 3),
+            'energy' => (int) ($stats['energy'] ?? 5),
+        ];
     }
 
     /**
-     * Get starting copper for a class
+     * Get starting copper
      */
-    public function getStartingCopper(string $class): int
+    public function getStartingCopper(): int
     {
-        return config("game.starting_copper.{$class}", 0);
+        return (int) config('game.starting_copper', 0);
     }
 }

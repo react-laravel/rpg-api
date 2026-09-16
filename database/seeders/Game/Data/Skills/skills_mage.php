@@ -56,7 +56,7 @@ return SkillTreeBuilder::merge(
         'target_type' => 'all',
     ], [
         'name' => '冰霜尖刺',
-        'description' => '改为单体，伤害变为 300%',
+        'description' => '主目标 300% 伤害，其余目标仍受全体伤害',
         'effects' => ['single_target_ratio' => 3.0],
     ]),
     SkillTreeBuilder::line('mage', 'core', 'mage_lightning', 'lightning', '雷击', [
@@ -133,7 +133,7 @@ return SkillTreeBuilder::merge(
         'target_type' => 'all',
     ], [
         'name' => '精准陨石',
-        'description' => '改为单体，主目标伤害 350%',
+        'description' => '主目标 350% 伤害，其余目标仍受全体伤害',
         'effects' => ['single_target_ratio' => 3.5],
     ]),
     SkillTreeBuilder::line('mage', 'special', 'mage_arcane_missile', 'arcane-missile', '奥术飞弹', [
@@ -173,7 +173,7 @@ return SkillTreeBuilder::merge(
         'target_type' => 'all',
     ], [
         'name' => '灾变聚焦',
-        'description' => '改为单体，伤害变为 450%',
+        'description' => '主目标 450% 伤害，其余目标仍受全体伤害',
         'effects' => ['single_target_ratio' => 4.5],
     ]),
     [SkillTreeBuilder::keyPassive('mage', 'mage_key', 'mage-key', '奥术共鸣', [

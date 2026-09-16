@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Game;
 
+use App\Http\Controllers\Concerns\CharacterConcern;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Game\AllocateStatsRequest;
 use App\Http\Requests\Game\CreateCharacterRequest;
@@ -14,7 +15,7 @@ use Throwable;
 
 class CharacterController extends Controller
 {
-    use \App\Http\Controllers\Concerns\CharacterConcern;
+    use CharacterConcern;
 
     public function __construct(
         private readonly GameCharacterService $characterService,
@@ -61,7 +62,6 @@ class CharacterController extends Controller
             $character = $this->characterService->createCharacter(
                 $request->user()->id,
                 $validated['name'],
-                $validated['class'],
                 $validated['gender'] ?? 'male'
             );
 

@@ -122,7 +122,6 @@ class SkillTreeBuilder
         return array_merge([
             'name' => $name,
             'effect_key' => $effectKey,
-            'class_restriction' => $class,
             'skill_stage' => $stage,
             'skill_line' => $skillLine,
             'node_tier' => $nodeTier,

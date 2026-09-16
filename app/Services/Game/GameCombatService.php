@@ -6,6 +6,7 @@ use App\Exceptions\GameException;
 use App\Jobs\Game\AutoCombatRoundJob;
 use App\Models\Game\GameCharacter;
 use App\Models\Game\GameMapDefinition;
+use App\Services\Game\Combat\CombatEffectApplier;
 use App\Services\Game\Combat\CombatSkillSelector;
 use App\Services\Game\DTOs\DefeatContext;
 use App\Support\Game\RpgAssetIconNormalizer;
@@ -177,6 +178,7 @@ class GameCombatService
             'current_mana' => $character->getCurrentMana(),
             'last_combat_at' => $character->last_combat_at,
             'skill_cooldowns' => $this->remainingSkillCooldowns($character),
+            'shield' => $this->summarizeActiveShield($character),
         ];
 
         if ($character->is_fighting) {
@@ -363,6 +365,7 @@ class GameCombatService
             'skill_target_positions' => $roundResult['skill_target_positions'] ?? [],
             'skill_cooldowns' => $character->combat_skill_cooldowns ?? [],
             'round_regen' => $roundRegen !== [] ? $roundRegen : null,
+            'shield' => $roundResult['shield'] ?? $this->summarizeActiveShield($character),
             'character' => ($character->fresh() ?? $character)->toArray(),
             'combat_log_id' => $combatLog->id,
         ];
@@ -529,6 +532,7 @@ class GameCombatService
             'copper_gained' => 0,
             'loot' => [],
             'skills_used' => is_array($roundResult['new_skills_aggregated'] ?? null) ? $roundResult['new_skills_aggregated'] : [],
+            'shield' => $roundResult['shield'] ?? null,
             'character' => $charArray,
             'current_hp' => 0,
             'current_mana' => 0,
@@ -544,6 +548,16 @@ class GameCombatService
         $this->broadcaster()->broadcastInventoryUpdate($character->id, $inventoryPayload);
 
         return $result;
+    }
+
+    /**
+     * @return array{hp: int, max_hp: int, ticks: int, broke: bool, absorbed: int}|null
+     */
+    private function summarizeActiveShield(GameCharacter $character): ?array
+    {
+        $buffs = is_array($character->combat_buffs ?? null) ? $character->combat_buffs : [];
+
+        return (new CombatEffectApplier)->summarizeShield($buffs);
     }
 
     private function broadcaster(): GameCombatBroadcaster

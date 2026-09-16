@@ -35,10 +35,6 @@ class SkillController extends Controller
         $definitions = GameSkillDefinition::query()
             ->where('is_active', true)
             ->whereNotNull('skill_line')
-            ->where(function ($query) use ($character) {
-                $query->where('class_restriction', 'all')
-                    ->orWhere('class_restriction', $character->class);
-            })
             ->get()
             ->sortBy([
                 fn (GameSkillDefinition $def) => self::STAGE_ORDER[$def->skill_stage ?? ''] ?? 99,
@@ -78,10 +74,6 @@ class SkillController extends Controller
 
         $skill = GameSkillDefinition::findOrFail($request->input('skill_id'));
 
-        if (! $skill->canLearnByClass($character->class)) {
-            return $this->error('该技能不适合你的职业');
-        }
-
         $existingSkill = $character->skills()->where('skill_id', $skill->id)->first();
         if ($existingSkill) {
             return $this->error('已经学习了该技能');
@@ -105,7 +97,6 @@ class SkillController extends Controller
                 ->where('skill_line', $skill->skill_line)
                 ->where('node_tier', 2)
                 ->where('spec_branch', '!=', $skill->spec_branch)
-                ->where('class_restriction', $skill->class_restriction)
                 ->first();
 
             if ($siblingSpec) {
@@ -147,7 +138,7 @@ class SkillController extends Controller
             if (! $hasPrereq) {
                 $prereqSkill = GameSkillDefinition::find($skill->prerequisite_skill_id);
 
-                return '需要先学习前置技能: ' . ($prereqSkill !== null ? $prereqSkill->name : '未知');
+                return '需要先学习前置技能: '.($prereqSkill !== null ? $prereqSkill->name : '未知');
             }
 
             return null;
@@ -155,15 +146,11 @@ class SkillController extends Controller
 
         if ($skill->prerequisite_effect_key) {
             $prereqSkill = GameSkillDefinition::where('effect_key', $skill->prerequisite_effect_key)
-                ->where(function ($query) use ($character) {
-                    $query->where('class_restriction', 'all')
-                        ->orWhere('class_restriction', $character->class);
-                })
                 ->first();
             if ($prereqSkill) {
                 $hasPrereq = $character->skills()->where('skill_id', $prereqSkill->id)->exists();
                 if (! $hasPrereq) {
-                    return '需要先学习前置技能: ' . $prereqSkill->name;
+                    return '需要先学习前置技能: '.$prereqSkill->name;
                 }
             }
         }

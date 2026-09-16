@@ -25,7 +25,6 @@ class GameSkillDefinition extends Model
         'name',
         'description',
         'type',
-        'class_restriction',
         'damage',
         'mana_cost',
         'cooldown',
@@ -66,20 +65,10 @@ class GameSkillDefinition extends Model
 
     public const TYPES = ['active', 'passive'];
 
-    public const CLASS_RESTRICTIONS = ['warrior', 'mage', 'ranger', 'all'];
-
     protected function icon(): Attribute
     {
         return Attribute::get(
             fn (?string $value): ?string => RpgAssetIconNormalizer::normalizeSkill($value)
         );
-    }
-
-    /**
-     * 检查职业是否可以使用该技能
-     */
-    public function canLearnByClass(string $class): bool
-    {
-        return $this->class_restriction === 'all' || $this->class_restriction === $class;
     }
 }

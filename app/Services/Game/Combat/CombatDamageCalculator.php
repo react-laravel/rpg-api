@@ -136,25 +136,15 @@ class CombatDamageCalculator
         $firstTarget = reset($targetMonsters);
         $targetDefense = $firstTarget['defense'] ?? 0;
         $baseAttackDamage = max(0, (int) ($charAttack - $targetDefense * $defenseReduction));
-
-        if ($skillDamage > 0) {
-            $combined = $baseAttackDamage + $skillDamage;
-            if (! $isCrit) {
-                return [$combined, 0];
-            }
-            $critted = (int) round($combined * $charCritDamage);
-
-            return [$critted, $critted - $combined];
-        }
+        $combined = $baseAttackDamage + max(0, $skillDamage);
 
         if (! $isCrit) {
             return [$baseAttackDamage, 0];
         }
 
-        $critDamageAmount = (int) ($baseAttackDamage * ($charCritDamage - 1));
-        $baseAttackDamage = (int) ($baseAttackDamage * $charCritDamage);
+        $critted = (int) round($combined * $charCritDamage);
 
-        return [$baseAttackDamage, $critDamageAmount];
+        return [$baseAttackDamage, max(0, $critted - $combined)];
     }
 
     /**

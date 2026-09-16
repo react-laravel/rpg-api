@@ -29,7 +29,6 @@ class GameCharacter extends Model
     protected $fillable = [
         'user_id',
         'name',
-        'class',
         'gender',
         'level',
         'experience',

@@ -43,7 +43,7 @@ class GameCharacterService
                 // Cache only scalar arrays. Cached Collection objects are restored as
                 // __PHP_Incomplete_Class by Laravel's safe Redis unserializer.
                 'characters' => $characters->map(fn ($c) => $c->only([
-                    'id', 'name', 'class', 'level', 'experience', 'copper', 'is_fighting', 'difficulty_tier',
+                    'id', 'name', 'gender', 'level', 'experience', 'copper', 'is_fighting', 'difficulty_tier',
                 ]))->values()->all(),
                 'experience_table' => config('game.experience_table', []),
                 'max_character_level' => (int) config('game.max_character_level', 200),
@@ -91,26 +91,25 @@ class GameCharacterService
     /**
      * Create new character
      */
-    public function createCharacter(int $userId, string $name, string $class, string $gender = 'male'): GameCharacter
+    public function createCharacter(int $userId, string $name, string $gender = 'male'): GameCharacter
     {
         $this->characterValidator->validateName($name);
         $this->characterValidator->validateNameNotTaken($name);
 
-        $classStats = $this->characterValidator->getClassBaseStats($class);
+        $baseStats = $this->characterValidator->getBaseStats();
 
-        return DB::transaction(function () use ($userId, $name, $class, $gender, $classStats) {
+        return DB::transaction(function () use ($userId, $name, $gender, $baseStats) {
             $character = GameCharacter::create([
                 'user_id' => $userId,
                 'name' => $name,
-                'class' => $class,
                 'gender' => $gender,
                 'level' => 1,
                 'experience' => 0,
-                'copper' => $this->characterValidator->getStartingCopper($class),
-                'strength' => $classStats['strength'],
-                'dexterity' => $classStats['dexterity'],
-                'vitality' => $classStats['vitality'],
-                'energy' => $classStats['energy'],
+                'copper' => $this->characterValidator->getStartingCopper(),
+                'strength' => $baseStats['strength'],
+                'dexterity' => $baseStats['dexterity'],
+                'vitality' => $baseStats['vitality'],
+                'energy' => $baseStats['energy'],
                 'skill_points' => 0,
                 'stat_points' => 0,
             ]);
@@ -272,12 +271,7 @@ class GameCharacterService
      */
     private function grantDefaultSkills(GameCharacter $character): void
     {
-        if ($character->class !== 'mage') {
-            return;
-        }
-
         $fireball = GameSkillDefinition::query()
-            ->where('class_restriction', 'mage')
             ->where('skill_line', 'mage_fireball')
             ->where('node_tier', 0)
             ->where('is_active', true)
@@ -300,10 +294,6 @@ class GameCharacterService
     {
         return GameSkillDefinition::query()
             ->where('is_active', true)
-            ->where(function ($query) use ($character) {
-                $query->where('class_restriction', 'all')
-                    ->orWhere('class_restriction', $character->class);
-            })
             ->get();
     }
 

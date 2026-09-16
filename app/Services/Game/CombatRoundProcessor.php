@@ -97,7 +97,8 @@ class CombatRoundProcessor
 
         $useAoe = $isAoeSkill && count($targetMonsters) > 1
             && (int) ($castEffects['bounce_count'] ?? 0) <= 0
-            && (int) ($castEffects['pierce_count'] ?? 0) <= 0;
+            && (int) ($castEffects['pierce_count'] ?? 0) <= 0
+            && (float) ($castEffects['single_target_ratio'] ?? 0) <= 0;
 
         $skillTargetPositions = $this->damageCalculator->getSkillTargetPositions($targetMonsters);
 
@@ -172,12 +173,19 @@ class CombatRoundProcessor
         $incoming = $this->effectApplier->calculateMonsterCounterDamage($monstersUpdated, $charDefense);
         $reflected = 0;
         $manaRestored = 0;
+        $shieldAbsorbed = 0;
+        $shieldBroke = false;
+        $shieldMaxHp = (int) ($buffs['shield_max_hp'] ?? $buffs['shield_hp'] ?? 0);
         if ($incoming > 0) {
+            $incomingBefore = $incoming;
+            $shieldHpBefore = (int) ($buffs['shield_hp'] ?? 0);
             [$incoming, $buffs, $reflected, $manaRestored] = $this->effectApplier->absorbWithShield(
                 $incoming,
                 $buffs,
                 (int) ($charStats['max_mana'] ?? 0)
             );
+            $shieldAbsorbed = max(0, $incomingBefore - $incoming);
+            $shieldBroke = $shieldHpBefore > 0 && (int) ($buffs['shield_hp'] ?? 0) <= 0 && $shieldAbsorbed > 0;
         }
         if ($reflected > 0) {
             [$monstersUpdated, $reflectDealt] = $this->applyFlatDamageToAlive($monstersUpdated, $reflected);
@@ -243,6 +251,7 @@ class CombatRoundProcessor
             'experience_gained' => $totalExperience,
             'copper_gained' => $totalCopper,
             'round_details' => $roundDetails,
+            'shield' => $this->effectApplier->summarizeShield($buffs, $shieldAbsorbed, $shieldBroke, $shieldMaxHp),
         ];
     }
 
@@ -318,7 +327,6 @@ class CombatRoundProcessor
         return [
             'character' => [
                 'level' => $context->character->level,
-                'class' => $context->character->class,
                 'attack' => $context->charAttack,
                 'defense' => $context->charDefense,
                 'crit_rate' => $context->charCritRate,

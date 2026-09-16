@@ -84,7 +84,7 @@ class CombatEffectApplier
         if ($shieldTicks > 0) {
             $buffs['shield_ticks'] = $shieldTicks - 1;
             if ($buffs['shield_ticks'] <= 0 || (int) ($buffs['shield_hp'] ?? 0) <= 0) {
-                unset($buffs['shield_hp'], $buffs['shield_ticks'], $buffs['reflect_on_break'], $buffs['mana_restore_on_break'], $buffs['spell_damage_bonus']);
+                unset($buffs['shield_hp'], $buffs['shield_max_hp'], $buffs['shield_ticks'], $buffs['reflect_on_break'], $buffs['mana_restore_on_break'], $buffs['spell_damage_bonus']);
             }
         }
 
@@ -106,6 +106,7 @@ class CombatEffectApplier
         }
 
         $buffs['shield_hp'] = max((int) ($buffs['shield_hp'] ?? 0), $amount);
+        $buffs['shield_max_hp'] = max((int) ($buffs['shield_max_hp'] ?? 0), $buffs['shield_hp']);
         $buffs['shield_ticks'] = max((int) ($buffs['shield_ticks'] ?? 0), $duration);
         if (isset($castEffects['reflect_on_break'])) {
             $buffs['reflect_on_break'] = (float) $castEffects['reflect_on_break'];
@@ -148,10 +149,33 @@ class CombatEffectApplier
             if ($manaRatio > 0 && $maxMana > 0) {
                 $manaRestored = (int) round($maxMana * $manaRatio);
             }
-            unset($buffs['shield_hp'], $buffs['shield_ticks'], $buffs['reflect_on_break'], $buffs['mana_restore_on_break'], $buffs['spell_damage_bonus']);
+            unset($buffs['shield_hp'], $buffs['shield_max_hp'], $buffs['shield_ticks'], $buffs['reflect_on_break'], $buffs['mana_restore_on_break'], $buffs['spell_damage_bonus']);
         }
 
         return [$remaining, $buffs, $reflected, $manaRestored];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $buffs
+     * @return array{hp: int, max_hp: int, ticks: int, broke: bool, absorbed: int}|null
+     */
+    public function summarizeShield(?array $buffs, int $absorbed = 0, bool $broke = false, int $fallbackMaxHp = 0): ?array
+    {
+        $buffs = is_array($buffs) ? $buffs : [];
+        $hp = (int) ($buffs['shield_hp'] ?? 0);
+        $ticks = (int) ($buffs['shield_ticks'] ?? 0);
+        $maxHp = max($hp, (int) ($buffs['shield_max_hp'] ?? 0), $fallbackMaxHp);
+        if ($hp <= 0 && $ticks <= 0 && ! $broke && $absorbed <= 0) {
+            return null;
+        }
+
+        return [
+            'hp' => max(0, $hp),
+            'max_hp' => max(0, $maxHp),
+            'ticks' => max(0, $ticks),
+            'broke' => $broke,
+            'absorbed' => max(0, $absorbed),
+        ];
     }
 
     /**
@@ -292,6 +316,16 @@ class CombatEffectApplier
 
         $targets = $damageCalculator->selectRoundTargets($allMonsters, $isAoe);
         $ratios = array_fill(0, count($targets), 1.0);
+        $singleRatio = (float) ($castEffects['single_target_ratio'] ?? 0);
+        if ($singleRatio > 0 && $targets !== []) {
+            $aoeMultiplier = (float) config('game.combat.aoe_damage_multiplier', 0.7);
+            $primary = $damageCalculator->selectLowestHpTargets($targets, 1)[0] ?? null;
+            $primarySlot = isset($primary['position']) ? (int) $primary['position'] : null;
+            foreach (array_values($targets) as $i => $target) {
+                $slot = isset($target['position']) ? (int) $target['position'] : null;
+                $ratios[$i] = $slot !== null && $slot === $primarySlot ? $singleRatio : $aoeMultiplier;
+            }
+        }
 
         return [$targets, $ratios];
     }

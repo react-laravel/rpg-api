@@ -65,10 +65,7 @@ trait CharacterCombatStats
      */
     public function getBaseHp(): int
     {
-        $hpConfig = config('game.hp', []);
-        $base = $hpConfig['base'] ?? [];
-
-        return (int) ($base[$this->class] ?? ($base['default'] ?? 15));
+        return $this->resourceBaseAmount('hp', 15);
     }
 
     /**
@@ -77,8 +74,7 @@ trait CharacterCombatStats
     public function getMaxHp(): int
     {
         $hpConfig = config('game.hp', []);
-        $base = $hpConfig['base'] ?? [];
-        $baseHp = $base[$this->class] ?? ($base['default'] ?? 15);
+        $baseHp = $this->resourceBaseAmount('hp', 15);
         $multiplier = $hpConfig['vitality_multiplier'] ?? 5;
         $equipmentBonus = (int) $this->getEquipmentBonus('max_hp');
 
@@ -91,11 +87,9 @@ trait CharacterCombatStats
     public function getCreationHp(): int
     {
         $hpConfig = config('game.hp', []);
-        $base = $hpConfig['base'] ?? [];
-        $baseHp = $base[$this->class] ?? ($base['default'] ?? 15);
+        $baseHp = $this->resourceBaseAmount('hp', 15);
         $multiplier = $hpConfig['vitality_multiplier'] ?? 5;
-        $classStats = config("game.class_base_stats.{$this->class}", []);
-        $vitality = (int) ($classStats['vitality'] ?? 5);
+        $vitality = (int) (config('game.character_base_stats.vitality') ?? 5);
 
         return (int) ($baseHp + $vitality * $multiplier);
     }
@@ -113,10 +107,7 @@ trait CharacterCombatStats
      */
     public function getBaseMana(): int
     {
-        $manaConfig = config('game.mana', []);
-        $base = $manaConfig['base'] ?? [];
-
-        return (int) ($base[$this->class] ?? ($base['default'] ?? 15));
+        return $this->resourceBaseAmount('mana', 15);
     }
 
     /**
@@ -125,8 +116,7 @@ trait CharacterCombatStats
     public function getMaxMana(): int
     {
         $manaConfig = config('game.mana', []);
-        $base = $manaConfig['base'] ?? [];
-        $baseMana = $base[$this->class] ?? ($base['default'] ?? 50);
+        $baseMana = $this->resourceBaseAmount('mana', 50);
         $multiplier = $manaConfig['energy_multiplier'] ?? 3;
         $equipmentBonus = (int) $this->getEquipmentBonus('max_mana');
         $keyPassive = $this->getKeyPassiveBonuses();
@@ -400,5 +390,16 @@ trait CharacterCombatStats
         if ($needsSave) {
             $this->save();
         }
+    }
+
+    private function resourceBaseAmount(string $configKey, int $fallback): int
+    {
+        $config = config('game.'.$configKey, []);
+        $base = $config['base'] ?? $fallback;
+        if (is_array($base)) {
+            return (int) ($base['default'] ?? $base['mage'] ?? $fallback);
+        }
+
+        return (int) $base;
     }
 }

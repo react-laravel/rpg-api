@@ -134,8 +134,9 @@ class CombatSkillSelectorTest extends TestCase
 
         $candidate = $selector->buildSkillCandidate($skill, $passives);
 
-        $this->assertFalse($candidate['is_aoe']);
-        $this->assertSame(135, $candidate['damage']);
+        $this->assertTrue($candidate['is_aoe']);
+        $this->assertSame(45, $candidate['damage']);
+        $this->assertEqualsWithDelta(3.0, $candidate['cast_effects']['single_target_ratio'], 0.001);
         $this->assertSame(3, $candidate['cooldown']);
         $this->assertFalse($candidate['is_defensive']);
     }

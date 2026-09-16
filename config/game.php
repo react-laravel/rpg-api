@@ -48,28 +48,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | 职业基础属性(创建角色时的初始四维)
+    | 角色基础属性(创建角色时的初始四维)
     |--------------------------------------------------------------------------
     */
-    'class_base_stats' => [
-        'warrior' => [
-            'strength' => 5,
-            'dexterity' => 3,
-            'vitality' => 5,
-            'energy' => 3,
-        ],
-        'mage' => [
-            'strength' => 3,
-            'dexterity' => 4,
-            'vitality' => 3,
-            'energy' => 5,
-        ],
-        'ranger' => [
-            'strength' => 4,
-            'dexterity' => 5,
-            'vitality' => 4,
-            'energy' => 4,
-        ],
+    'character_base_stats' => [
+        'strength' => 3,
+        'dexterity' => 4,
+        'vitality' => 3,
+        'energy' => 5,
     ],
 
     /*
@@ -78,12 +64,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'hp' => [
-        'base' => [
-            'warrior' => 20,
-            'mage' => 10,
-            'ranger' => 15,
-            'default' => 15,
-        ],
+        'base' => 10,
         'vitality_multiplier' => 3,
     ],
 
@@ -93,13 +74,8 @@ return [
     |--------------------------------------------------------------------------
     */
     'mana' => [
-        'base' => [
-            'warrior' => 10,
-            'mage' => 20,
-            'ranger' => 15,
-            'default' => 15,
-        ],
-        // 最大法力 = base[职业] + 能量属性 × energy_multiplier
+        'base' => 20,
+        // 最大法力 = base + 能量属性 × energy_multiplier
         'energy_multiplier' => 2,
     ],
 
@@ -221,17 +197,17 @@ return [
     |--------------------------------------------------------------------------
     | 战斗属性计算(攻击/防御/暴击)
     |--------------------------------------------------------------------------
-    | 基础攻击统一由 strength 字段决定（前端显示为“攻击力”）：
-    | - 攻击：所有职业基础攻击 = strength × attack.multiplier。
-    | - 防御：全职业参与，防御 = 体力×vitality_multiplier + 敏捷×dexterity_multiplier。
-    | - 暴击率：全职业参与，基础暴击 = 敏捷×dexterity_multiplier，总暴击率有 cap 上限。
+    | 基础攻击由 strength 字段决定（前端显示为“攻击力”）：
+    | - 攻击 = strength × attack.multiplier。
+    | - 防御 = 体力×vitality_multiplier + 敏捷×dexterity_multiplier。
+    | - 基础暴击 = 敏捷×dexterity_multiplier，总暴击率有 cap 上限。
     | 暴击封顶后敏捷仍可提升防御，部分装备有 required_dexterity 穿戴需求。
     |--------------------------------------------------------------------------
     */
     'combat' => [
         // 怪物属性刷新间隔(秒)，定期从数据库重新读取怪物属性
         'monster_refresh_interval' => env('COMBAT_MONSTER_REFRESH_INTERVAL', 60),
-        // 攻击：所有职业统一使用 strength 字段；前端显示为“攻击力”
+        // 攻击：使用 strength 字段；前端显示为“攻击力”
         'attack' => [
             'stat' => 'strength',
             'multiplier' => 1,

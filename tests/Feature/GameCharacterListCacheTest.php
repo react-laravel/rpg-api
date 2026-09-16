@@ -16,7 +16,6 @@ class GameCharacterListCacheTest extends TestCase
         $character = GameCharacter::query()->create([
             'user_id' => 42,
             'name' => '缓存测试角色',
-            'class' => 'mage',
             'gender' => 'female',
         ]);
 

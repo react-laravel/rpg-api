@@ -36,7 +36,6 @@ class GameCombatLog extends Model
         'potion_used',
         // 角色属性
         'character_level',
-        'character_class',
         'character_attack',
         'character_defense',
         'character_crit_rate',

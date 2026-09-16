@@ -40,7 +40,6 @@ class GameCombatLogService
                 : null,
             // 角色属性
             'character_level' => $roundDetails['character']['level'] ?? $character->level,
-            'character_class' => $roundDetails['character']['class'] ?? $character->class,
             'character_attack' => $roundDetails['character']['attack'] ?? null,
             'character_defense' => $roundDetails['character']['defense'] ?? null,
             'character_crit_rate' => $roundDetails['character']['crit_rate'] ?? null,
@@ -97,7 +96,6 @@ class GameCombatLogService
             'skills_used' => $roundResult['new_skills_aggregated'],
             // 角色属性
             'character_level' => $character->level,
-            'character_class' => $character->class,
             'character_attack' => $charStats['attack'] ?? null,
             'character_defense' => $charStats['defense'] ?? null,
             'character_crit_rate' => $charStats['crit_rate'] ?? null,
@@ -109,7 +107,13 @@ class GameCombatLogService
             'monster_attack' => $roundResult['monster']['attack'] ?? $monster->attack_base ?? null,
             'monster_defense' => $roundResult['monster']['defense'] ?? $monster->defense_base ?? null,
             'monster_experience' => $roundResult['monster']['experience'] ?? $monster->experience_base ?? null,
-            // 难度相关
+            'base_attack_damage' => $roundResult['round_details']['damage']['base_attack'] ?? null,
+            'skill_damage' => $roundResult['round_details']['damage']['skill_damage'] ?? null,
+            'crit_damage' => $roundResult['round_details']['damage']['crit_damage'] ?? null,
+            'aoe_damage' => $roundResult['round_details']['damage']['aoe_damage'] ?? null,
+            'total_damage_to_monsters' => $roundResult['round_details']['damage']['total'] ?? $character->combat_total_damage_dealt,
+            'monster_defense_reduction' => $roundResult['round_details']['damage']['defense_reduction'] ?? null,
+            'monster_counter_damage' => $roundResult['round_details']['damage']['monster_counter'] ?? null,
             'difficulty_tier' => $character->difficulty_tier ?? 0,
             'difficulty_multiplier' => $difficulty['reward'],
         ]);
@@ -166,7 +170,6 @@ class GameCombatLogService
             // 角色属性
             'character' => [
                 'level' => $log->character_level,
-                'class' => $log->character_class,
                 'attack' => $log->character_attack,
                 'defense' => $log->character_defense,
                 'crit_rate' => $log->character_crit_rate,
@@ -264,7 +267,6 @@ class GameCombatLogService
                 'created_at' => $log->created_at->toISOString(),
                 // 角色属性
                 'character_level' => $log->character_level,
-                'character_class' => $log->character_class,
                 'character_attack' => $log->character_attack,
                 'character_defense' => $log->character_defense,
                 'character_crit_rate' => $log->character_crit_rate,

@@ -26,14 +26,14 @@ class GameSeeder extends Seeder
     {
         DB::table('game_item_definitions')->truncate();
 
-        $items = require __DIR__ . '/Data/items.php';
+        $items = require __DIR__.'/Data/items.php';
 
         foreach ($items as $item) {
-            $assetKey = $item['asset_key'] ?? ('item_' . $item['id']);
+            $assetKey = $item['asset_key'] ?? ('item_'.$item['id']);
             unset($item['asset_key']);
 
             GameItemDefinition::create(array_merge($item, [
-                'icon' => $assetKey . '.png',
+                'icon' => $assetKey.'.png',
                 'is_active' => true,
             ]));
         }
@@ -41,15 +41,13 @@ class GameSeeder extends Seeder
 
     private function seedSkillDefinitions(): void
     {
-        $skillsDir = __DIR__ . '/Data/Skills';
+        $skillsDir = __DIR__.'/Data/Skills';
         $skillFiles = [
-            'skills_warrior.php',
             'skills_mage.php',
-            'skills_ranger.php',
         ];
         $skills = [];
         foreach ($skillFiles as $file) {
-            $path = $skillsDir . '/' . $file;
+            $path = $skillsDir.'/'.$file;
             if (file_exists($path)) {
                 $skills = array_merge($skills, require $path);
             }
@@ -59,7 +57,7 @@ class GameSeeder extends Seeder
 
         foreach ($skills as $skill) {
             $parentRef = $skill['parent_ref'] ?? null;
-            unset($skill['parent_ref']);
+            unset($skill['parent_ref'], $skill['class_restriction']);
 
             $isActiveSkill = ($skill['type'] ?? 'active') === 'active';
             $baseDamage = $isActiveSkill
@@ -71,7 +69,6 @@ class GameSeeder extends Seeder
                     'skill_line' => $skill['skill_line'],
                     'node_tier' => $skill['node_tier'],
                     'spec_branch' => $skill['spec_branch'] ?? null,
-                    'class_restriction' => $skill['class_restriction'],
                 ],
                 array_merge($skill, [
                     'prerequisite_skill_id' => null,
@@ -80,8 +77,8 @@ class GameSeeder extends Seeder
                     'tier' => (int) ($skill['node_tier'] ?? 0) + 1,
                     'target_type' => $skill['target_type'] ?? 'single',
                     'icon' => ! empty($skill['effect_key'])
-                        ? $skill['effect_key'] . '.png'
-                        : 'skill_' . strtolower(str_replace(' ', '_', $skill['name'])) . '.png',
+                        ? $skill['effect_key'].'.png'
+                        : 'skill_'.strtolower(str_replace(' ', '_', $skill['name'])).'.png',
                     'is_active' => true,
                     'base_damage' => $baseDamage,
                 ])
@@ -102,14 +99,10 @@ class GameSeeder extends Seeder
                 'skill_line' => $def->skill_line,
                 'node_tier' => $def->node_tier,
                 'spec_branch' => $def->spec_branch,
-                'class_restriction' => $def->class_restriction,
             ]));
 
         foreach ($pendingParents as $pending) {
-            $parentKey = $this->skillLineKey(array_merge(
-                $pending['parent_ref'],
-                ['class_restriction' => GameSkillDefinition::find($pending['skill_id'])?->class_restriction]
-            ));
+            $parentKey = $this->skillLineKey($pending['parent_ref']);
             $parent = $idByRef->get($parentKey);
             if ($parent !== null) {
                 GameSkillDefinition::whereKey($pending['skill_id'])->update([
@@ -123,7 +116,7 @@ class GameSeeder extends Seeder
             ->pluck('id');
 
         GameSkillDefinition::query()
-            ->whereIn('class_restriction', ['warrior', 'mage', 'ranger'])
+            ->whereNotNull('skill_line')
             ->whereNotIn('id', $seededIds)
             ->update(['is_active' => false]);
     }
@@ -134,7 +127,6 @@ class GameSeeder extends Seeder
     private function skillLineKey(array $skill): string
     {
         return implode('|', [
-            $skill['class_restriction'] ?? '',
             $skill['skill_line'] ?? '',
             (string) ($skill['node_tier'] ?? ''),
             $skill['spec_branch'] ?? '',
@@ -145,14 +137,14 @@ class GameSeeder extends Seeder
     {
         DB::table('game_monster_definitions')->truncate();
 
-        $monsters = require __DIR__ . '/Data/monsters.php';
+        $monsters = require __DIR__.'/Data/monsters.php';
 
         foreach ($monsters as $monster) {
-            $assetKey = $monster['asset_key'] ?? ('monster_' . strtolower(str_replace(' ', '_', $monster['name'])));
+            $assetKey = $monster['asset_key'] ?? ('monster_'.strtolower(str_replace(' ', '_', $monster['name'])));
             unset($monster['asset_key']);
 
             GameMonsterDefinition::create(array_merge($monster, [
-                'icon' => $assetKey . '.png',
+                'icon' => $assetKey.'.png',
                 'is_active' => true,
             ]));
         }
@@ -160,7 +152,7 @@ class GameSeeder extends Seeder
 
     private function seedMapDefinitions(): void
     {
-        $maps = require __DIR__ . '/Data/maps.php';
+        $maps = require __DIR__.'/Data/maps.php';
 
         // 按 ID 顺序取当前库中怪物，用于把配置里的“序号”转成真实 ID(避免多次 seed 后 ID 错位)
         $monsterIdsByOrder = GameMonsterDefinition::query()
@@ -171,7 +163,7 @@ class GameSeeder extends Seeder
             ->all();
 
         foreach ($maps as $index => $map) {
-            $assetKey = $map['asset_key'] ?? ('map_' . ($index + 1));
+            $assetKey = $map['asset_key'] ?? ('map_'.($index + 1));
             unset($map['asset_key']);
             $rawIds = $map['monster_ids'] ?? [];
             $resolvedIds = array_values(array_filter(array_map(
@@ -189,7 +181,7 @@ class GameSeeder extends Seeder
                 ],
                 array_merge($map, [
                     'monster_ids' => $resolvedIds,
-                    'background' => $assetKey . '.jpg',
+                    'background' => $assetKey.'.jpg',
                     'is_active' => true,
                 ])
             );
