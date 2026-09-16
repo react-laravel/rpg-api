@@ -34,6 +34,7 @@ chmod -R ug+rwX bootstrap/cache "$SHARED/storage"
 php artisan config:cache
 php artisan view:cache
 php artisan migrate --force
+php artisan rpg:sync-monster-progression
 
 mv "$STAGING" "$RELEASE"
 ln -sfn "$RELEASE" "$CURRENT"

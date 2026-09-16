@@ -124,13 +124,66 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | 怪物类型倍率(普通/精英/Boss，用于属性与掉落计算)
+    | 怪物类型倍率(普通/精英/Boss，用于掉落计算)
     |--------------------------------------------------------------------------
     */
     'monster_type_multipliers' => [
         'normal' => 1,
         'elite' => 1.8,
         'boss' => 3,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 怪物属性递进（按地图层，3 只怪一层）
+    |--------------------------------------------------------------------------
+    | HP   = round((hp_base + (layer-1) * hp_growth) * hp_type_multiplier[type])
+    | 攻击 = (layer-1) * attack_growth          // 第 1 层（新手营地）攻击为 0
+    | 防御 = defense_base + (layer-1) * defense_growth
+    | 经验 = round(layer^2 * exp_type_multiplier[type])
+    | 类型：新手营地全普通；其余地图槽 2=精英；章节最后一张槽 2=Boss（Boss 生命按坦克原型计算）。
+    | 槽 0/1 始终普通，避免精英/Boss 倍率让相邻图变成血墙。
+    */
+    'monster_progression' => [
+        'archetypes' => [
+            [
+                'key' => 'boar',
+                'name' => '野猪',
+                'hp_base' => 3,
+                'hp_growth' => 6,
+                'defense_base' => 1,
+                'defense_growth' => 1,
+                'attack_growth' => 2,
+            ],
+            [
+                'key' => 'deer',
+                'name' => '鹿',
+                'hp_base' => 2,
+                'hp_growth' => 4,
+                'defense_base' => 2,
+                'defense_growth' => 2,
+                'attack_growth' => 3,
+            ],
+            [
+                'key' => 'rabbit',
+                'name' => '兔子',
+                'hp_base' => 1,
+                'hp_growth' => 2,
+                'defense_base' => 3,
+                'defense_growth' => 3,
+                'attack_growth' => 1,
+            ],
+        ],
+        'hp_type_multiplier' => [
+            'normal' => 1.0,
+            'elite' => 1.25,
+            'boss' => 2.0,
+        ],
+        'exp_type_multiplier' => [
+            'normal' => 1.0,
+            'elite' => 2.0,
+            'boss' => 4.0,
+        ],
     ],
 
     /*

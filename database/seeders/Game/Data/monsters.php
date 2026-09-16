@@ -1,5 +1,8 @@
 <?php
 
+use App\Support\Game\MonsterProgression;
+
+// 名称/图标按此表；type/level/hp/attack/defense/exp 由 MonsterProgression 按地图层覆盖。
 $monsters = [
     [
         'name' => '猪',
@@ -549,37 +552,9 @@ $prompts = [
     'chaos-king' => 'RPG monster portrait, chaos king, final boss, crown, chaos aura, most imposing figure, highly detailed final boss art, square, dark background',
 ];
 
-$maps = require __DIR__ . '/maps.php';
+$maps = require __DIR__.'/maps.php';
 
-$archetypes = [
-    [
-        'key' => 'boar',
-        'name' => '野猪',
-        'hp_base' => 3,
-        'hp_growth' => 6,
-        'defense_base' => 1,
-        'defense_growth' => 1,
-        'attack_growth' => 2,
-    ],
-    [
-        'key' => 'deer',
-        'name' => '鹿',
-        'hp_base' => 2,
-        'hp_growth' => 4,
-        'defense_base' => 2,
-        'defense_growth' => 2,
-        'attack_growth' => 3,
-    ],
-    [
-        'key' => 'rabbit',
-        'name' => '兔子',
-        'hp_base' => 1,
-        'hp_growth' => 2,
-        'defense_base' => 3,
-        'defense_growth' => 3,
-        'attack_growth' => 1,
-    ],
-];
+$archetypes = MonsterProgression::archetypes();
 
 $namedMonsterCount = count($monsters);
 $requiredMonsterCount = count($maps) * count($archetypes);
@@ -595,7 +570,7 @@ for ($index = $namedMonsterCount; $index < $requiredMonsterCount; $index++) {
     );
 
     $monsters[] = [
-        'name' => $map['name'] . $archetype['name'],
+        'name' => $map['name'].$archetype['name'],
         'type' => 'normal',
         'level' => $mapIndex + 1,
     ];
@@ -608,24 +583,8 @@ for ($index = $namedMonsterCount; $index < $requiredMonsterCount; $index++) {
     );
 }
 
-$applyLayerStats = static function (array $monster, int $index) use ($archetypes): array {
-    $layer = intdiv($index, count($archetypes)) + 1;
-    $archetype = $archetypes[$index % count($archetypes)];
-    $type = $monster['type'] ?? 'normal';
-    $hpMultiplier = match ($type) {
-        'boss' => 4.0,
-        'elite' => 2.2,
-        default => 1.0,
-    };
-    $baseHp = $archetype['hp_base'] + ($layer - 1) * $archetype['hp_growth'];
-
-    return array_merge($monster, [
-        'level' => $layer,
-        'hp_base' => max(1, (int) round($baseHp * $hpMultiplier)),
-        'defense_base' => $archetype['defense_base'] + ($layer - 1) * $archetype['defense_growth'],
-        'attack_base' => ($layer - 1) * $archetype['attack_growth'],
-        'experience_base' => $layer ** 2,
-    ]);
+$applyLayerStats = static function (array $monster, int $index) use ($maps): array {
+    return MonsterProgression::apply($monster, $index, $maps);
 };
 
 $defaultDropTable = static function (array $monster): array {
@@ -657,10 +616,8 @@ $defaultDropTable = static function (array $monster): array {
 };
 
 return array_map(
-    static function (array $monster, int $index) use ($applyLayerStats, $assetKeys, $prompts, $defaultDropTable, $namedMonsterCount): array {
-        if ($index >= $namedMonsterCount) {
-            $monster = $applyLayerStats($monster, $index);
-        }
+    static function (array $monster, int $index) use ($applyLayerStats, $assetKeys, $prompts, $defaultDropTable): array {
+        $monster = $applyLayerStats($monster, $index);
 
         return array_merge($monster, [
             'asset_key' => $assetKeys[$index],

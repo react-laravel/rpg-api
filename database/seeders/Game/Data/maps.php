@@ -89,4 +89,11 @@ $maps = [
     ['name' => '混沌王座', 'act' => 8, 'monster_ids' => [48, 49], 'description' => '混沌之王的最终王座', 'asset_key' => 'chaos-king-throne', 'icon_prompt' => $mapPrompts['chaos-king-throne']],
 ];
 
+$monstersPerMap = 3;
+foreach ($maps as $index => &$map) {
+    $base = $index * $monstersPerMap;
+    $map['monster_ids'] = [$base + 1, $base + 2, $base + 3];
+}
+unset($map);
+
 return $maps;
