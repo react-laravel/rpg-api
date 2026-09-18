@@ -72,16 +72,17 @@ class GameItemDefinition extends Model
     ];
 
     public const SUB_TYPES = [
-        'sword',
-        'axe',
-        'mace',
         'staff',
-        'bow',
-        'dagger',
         'cloth',
-        'leather',
-        'mail',
-        'plate',
+    ];
+
+    public const GEM_ICONS = [
+        'attack' => 'attack-gem.png',
+        'defense' => 'defense-gem.png',
+        'max_hp' => 'hp-gem.png',
+        'max_mana' => 'mana-gem.png',
+        'crit_rate' => 'crit-gem.png',
+        'crit_damage' => 'crit-damage-gem.png',
     ];
 
     /**

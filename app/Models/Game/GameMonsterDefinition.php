@@ -139,11 +139,19 @@ class GameMonsterDefinition extends Model
             $loot['item'] = [
                 'type' => $itemType,
                 'quality' => $quality,
-                'level' => min($characterLevel, $this->level + 3),
+                'level' => $this->equipmentDropLevel($characterLevel),
             ];
         }
 
         return $loot;
+    }
+
+    /** 地图层数与装备等级分开，后期地图才能产出高阶套装。 */
+    public function equipmentDropLevel(int $characterLevel): int
+    {
+        $level = (int) (($this->drop_table ?? [])['equipment_level'] ?? ($this->level + 3));
+
+        return max(1, min($characterLevel, $level));
     }
 
     /**

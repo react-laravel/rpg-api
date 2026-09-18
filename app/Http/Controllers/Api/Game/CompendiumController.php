@@ -100,9 +100,8 @@ class CompendiumController extends Controller
         // 获取对应类型的物品定义
         $items = GameItemDefinition::where('is_active', true)
             ->whereIn('type', $itemTypes)
-            ->where('required_level', '<=', $monster->level + 3)
+            ->where('required_level', '<=', $monster->equipmentDropLevel($character->level))
             ->orderBy('required_level')
-            ->limit(20)
             ->get();
 
         // 计算每个物品的权重(基于物品等级和品质)

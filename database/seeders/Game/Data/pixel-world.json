@@ -1,0 +1,1992 @@
+{
+  "version": "pixel-v1",
+  "chapters": [
+    {
+      "act": 1,
+      "key": "earth",
+      "name": "大地边境",
+      "palette": "土棕、草绿、暖阳",
+      "equipment_level": 10
+    },
+    {
+      "act": 2,
+      "key": "wood",
+      "name": "青藤秘境",
+      "palette": "翠绿、棕褐、萤光",
+      "equipment_level": 20
+    },
+    {
+      "act": 3,
+      "key": "water",
+      "name": "沧澜水境",
+      "palette": "湖蓝、银白、冰青",
+      "equipment_level": 35
+    },
+    {
+      "act": 4,
+      "key": "fire",
+      "name": "烈阳火域",
+      "palette": "赤红、橙金、黑岩",
+      "equipment_level": 55
+    },
+    {
+      "act": 5,
+      "key": "metal",
+      "name": "鎏金古国",
+      "palette": "黄金、黄铜、银白",
+      "equipment_level": 75
+    },
+    {
+      "act": 6,
+      "key": "wind",
+      "name": "天空群岛",
+      "palette": "天青、象牙白、薄荷绿",
+      "equipment_level": 95
+    },
+    {
+      "act": 7,
+      "key": "thunder",
+      "name": "雷霆天域",
+      "palette": "紫罗兰、银黑、电蓝",
+      "equipment_level": 110
+    },
+    {
+      "act": 8,
+      "key": "convergence",
+      "name": "七曜终境",
+      "palette": "七元素彩光、深蓝、星金",
+      "equipment_level": 120
+    }
+  ],
+  "maps": [
+    {
+      "ordinal": 1,
+      "name": "晨光营地",
+      "act": 1,
+      "description": "晨光中的青草营地，木栅栏、帐篷和泥土练习场",
+      "asset_key": "pixel-map-01",
+      "legacy_name": "新手营地",
+      "legacy_asset_key": "safe-training-camp",
+      "monster_ordinals": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "ordinal": 2,
+      "name": "砾石小径",
+      "act": 1,
+      "description": "碎石小径穿过低矮草坡，石堆与路牌",
+      "asset_key": "pixel-map-02",
+      "legacy_name": "幽暗森林",
+      "legacy_asset_key": "dark-enchanted-forest",
+      "monster_ordinals": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "ordinal": 3,
+      "name": "赤土荒坡",
+      "act": 1,
+      "description": "红土荒坡、层叠砂岩和稀疏灌木",
+      "asset_key": "pixel-map-03",
+      "legacy_name": "哥布林巢穴",
+      "legacy_asset_key": "goblin-cave-lair",
+      "monster_ordinals": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "ordinal": 4,
+      "name": "古矿坑道",
+      "act": 1,
+      "description": "废弃矿坑、木支架、矿车和发光矿石",
+      "asset_key": "pixel-map-04",
+      "legacy_name": "野猪平原",
+      "legacy_asset_key": "wild-boar-plains",
+      "monster_ordinals": [
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "ordinal": 5,
+      "name": "大地石庭",
+      "act": 1,
+      "description": "巨石环绕的开阔祭庭，岩石符文与山脉",
+      "asset_key": "pixel-map-05",
+      "legacy_name": "树人圣地",
+      "legacy_asset_key": "treant-sacred-grove",
+      "monster_ordinals": [
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "ordinal": 6,
+      "name": "青藤林缘",
+      "act": 2,
+      "description": "明亮树林边缘，藤蔓拱门、野花和蜿蜒土路",
+      "asset_key": "pixel-map-06",
+      "legacy_name": "黑暗洞穴入口",
+      "legacy_asset_key": "dark-cave-entrance",
+      "monster_ordinals": [
+        16,
+        17,
+        18
+      ]
+    },
+    {
+      "ordinal": 7,
+      "name": "巨蕈湿地",
+      "act": 2,
+      "description": "巨型蘑菇与浅水沼泽，发光孢子、木栈道",
+      "asset_key": "pixel-map-07",
+      "legacy_name": "蜘蛛洞穴",
+      "legacy_asset_key": "spider-cave",
+      "monster_ordinals": [
+        19,
+        20,
+        21
+      ]
+    },
+    {
+      "ordinal": 8,
+      "name": "古木回廊",
+      "act": 2,
+      "description": "古树树根构成回廊，苔藓石台和林间光束",
+      "asset_key": "pixel-map-08",
+      "legacy_name": "骷髅墓地",
+      "legacy_asset_key": "skeleton-graveyard",
+      "monster_ordinals": [
+        22,
+        23,
+        24
+      ]
+    },
+    {
+      "ordinal": 9,
+      "name": "翠叶圣林",
+      "act": 2,
+      "description": "参天古榕围绕的绿色圣林，中央树根祭坛",
+      "asset_key": "pixel-map-09",
+      "legacy_name": "骸骨大厅",
+      "legacy_asset_key": "bone-hall",
+      "monster_ordinals": [
+        25,
+        26,
+        27
+      ]
+    },
+    {
+      "ordinal": 10,
+      "name": "雾溪浅滩",
+      "act": 3,
+      "description": "薄雾溪流与鹅卵石浅滩，芦苇和小木桥",
+      "asset_key": "pixel-map-10",
+      "legacy_name": "地狱之门",
+      "legacy_asset_key": "hell-gate",
+      "monster_ordinals": [
+        28,
+        29,
+        30
+      ]
+    },
+    {
+      "ordinal": 11,
+      "name": "潮汐沙洲",
+      "act": 3,
+      "description": "碧蓝海湾里的沙洲，潮池、贝壳和礁石",
+      "asset_key": "pixel-map-11",
+      "legacy_name": "火焰平原",
+      "legacy_asset_key": "burning-fire-plains",
+      "monster_ordinals": [
+        31,
+        32,
+        33
+      ]
+    },
+    {
+      "ordinal": 12,
+      "name": "沉船暗湾",
+      "act": 3,
+      "description": "月光下的沉船海湾，破船残骸、灯笼与湿沙",
+      "asset_key": "pixel-map-12",
+      "legacy_name": "炎魔洞穴",
+      "legacy_asset_key": "fire-demon-cave",
+      "monster_ordinals": [
+        34,
+        35,
+        36
+      ]
+    },
+    {
+      "ordinal": 13,
+      "name": "寒晶冰窟",
+      "act": 3,
+      "description": "蓝色冰窟、巨大冰晶柱与冻结水池",
+      "asset_key": "pixel-map-13",
+      "legacy_name": "恶魔要塞",
+      "legacy_asset_key": "demon-fortress",
+      "monster_ordinals": [
+        37,
+        38,
+        39
+      ]
+    },
+    {
+      "ordinal": 14,
+      "name": "沧澜龙宫",
+      "act": 3,
+      "description": "水下珊瑚龙宫，碧蓝穹顶、贝壳石柱和开阔地面",
+      "asset_key": "pixel-map-14",
+      "legacy_name": "魔王宫殿",
+      "legacy_asset_key": "demon-king-palace",
+      "monster_ordinals": [
+        40,
+        41,
+        42
+      ]
+    },
+    {
+      "ordinal": 15,
+      "name": "炽砂戈壁",
+      "act": 4,
+      "description": "炽热红砂戈壁，风化石柱与远处火山",
+      "asset_key": "pixel-map-15",
+      "legacy_name": "深渊入口",
+      "legacy_asset_key": "abyss-entrance",
+      "monster_ordinals": [
+        43,
+        44,
+        45
+      ]
+    },
+    {
+      "ordinal": 16,
+      "name": "熔岩裂谷",
+      "act": 4,
+      "description": "熔岩河穿过黑色岩谷，中央完整石台",
+      "asset_key": "pixel-map-16",
+      "legacy_name": "黑暗迷宫",
+      "legacy_asset_key": "dark-maze",
+      "monster_ordinals": [
+        46,
+        47,
+        48
+      ]
+    },
+    {
+      "ordinal": 17,
+      "name": "烈阳祭坛",
+      "act": 4,
+      "description": "落日下的太阳祭坛，红砂石阶与金色日轮",
+      "asset_key": "pixel-map-17",
+      "legacy_name": "虚空裂隙",
+      "legacy_asset_key": "void-rift",
+      "monster_ordinals": [
+        49,
+        50,
+        51
+      ]
+    },
+    {
+      "ordinal": 18,
+      "name": "太阳熔炉",
+      "act": 4,
+      "description": "巨型太阳熔炉与环形黑曜石平台，赤金光芒",
+      "asset_key": "pixel-map-18",
+      "legacy_name": "深渊王座",
+      "legacy_asset_key": "abyss-throne",
+      "monster_ordinals": [
+        52,
+        53,
+        54
+      ]
+    },
+    {
+      "ordinal": 19,
+      "name": "镀金遗道",
+      "act": 5,
+      "description": "金色遗迹道路，古代石像、金属拱门和野草",
+      "asset_key": "pixel-map-19",
+      "legacy_name": "天界入口",
+      "legacy_asset_key": "heaven-gate",
+      "monster_ordinals": [
+        55,
+        56,
+        57
+      ]
+    },
+    {
+      "ordinal": 20,
+      "name": "黄铜工坊",
+      "act": 5,
+      "description": "黄铜机械工坊，齿轮、管道、工作台和空地",
+      "asset_key": "pixel-map-20",
+      "legacy_name": "天使圣殿",
+      "legacy_asset_key": "angel-temple",
+      "monster_ordinals": [
+        58,
+        59,
+        60
+      ]
+    },
+    {
+      "ordinal": 21,
+      "name": "银辉镜殿",
+      "act": 5,
+      "description": "银白镜面神殿，反光石柱与几何地砖",
+      "asset_key": "pixel-map-21",
+      "legacy_name": "荣耀大厅",
+      "legacy_asset_key": "hall-of-glory",
+      "monster_ordinals": [
+        61,
+        62,
+        63
+      ]
+    },
+    {
+      "ordinal": 22,
+      "name": "黄金宝库",
+      "act": 5,
+      "description": "古代黄金宝库，金币堆、宝箱、金色石门",
+      "asset_key": "pixel-map-22",
+      "legacy_name": "堕落天使领域",
+      "legacy_asset_key": "fallen-angel-realm",
+      "monster_ordinals": [
+        64,
+        65,
+        66
+      ]
+    },
+    {
+      "ordinal": 23,
+      "name": "铸星王庭",
+      "act": 5,
+      "description": "金属王庭与铸星熔炉，宏伟铂金王座和星徽",
+      "asset_key": "pixel-map-23",
+      "legacy_name": "大天使圣殿",
+      "legacy_asset_key": "archangel-temple",
+      "monster_ordinals": [
+        67,
+        68,
+        69
+      ]
+    },
+    {
+      "ordinal": 24,
+      "name": "风铃草原",
+      "act": 6,
+      "description": "微风吹拂的高原草地，风铃木架与远山白云",
+      "asset_key": "pixel-map-24",
+      "legacy_name": "神域入口",
+      "legacy_asset_key": "god-realm-entrance",
+      "monster_ordinals": [
+        70,
+        71,
+        72
+      ]
+    },
+    {
+      "ordinal": 25,
+      "name": "云桥峭壁",
+      "act": 6,
+      "description": "云海峭壁上的悬索桥和开阔石台",
+      "asset_key": "pixel-map-25",
+      "legacy_name": "神仆大厅",
+      "legacy_asset_key": "god-servant-hall",
+      "monster_ordinals": [
+        73,
+        74,
+        75
+      ]
+    },
+    {
+      "ordinal": 26,
+      "name": "悬空群岛",
+      "act": 6,
+      "description": "天空中的漂浮小岛，瀑布流入云海",
+      "asset_key": "pixel-map-26",
+      "legacy_name": "神官圣殿",
+      "legacy_asset_key": "god-priest-temple",
+      "monster_ordinals": [
+        76,
+        77,
+        78
+      ]
+    },
+    {
+      "ordinal": 27,
+      "name": "风暴回廊",
+      "act": 6,
+      "description": "浮空遗迹回廊，旋风石柱和青绿色气流",
+      "asset_key": "pixel-map-27",
+      "legacy_name": "神将殿",
+      "legacy_asset_key": "god-general-palace",
+      "monster_ordinals": [
+        79,
+        80,
+        81
+      ]
+    },
+    {
+      "ordinal": 28,
+      "name": "苍穹观星台",
+      "act": 6,
+      "description": "云端观星台，黄铜望远镜、星盘与蓝天",
+      "asset_key": "pixel-map-28",
+      "legacy_name": "神王殿",
+      "legacy_asset_key": "god-king-temple",
+      "monster_ordinals": [
+        82,
+        83,
+        84
+      ]
+    },
+    {
+      "ordinal": 29,
+      "name": "天空之门",
+      "act": 6,
+      "description": "宏伟白石天空门，云海台阶与展开的羽翼雕刻",
+      "asset_key": "pixel-map-29",
+      "legacy_name": "审判之庭",
+      "legacy_asset_key": "judgment-court",
+      "monster_ordinals": [
+        85,
+        86,
+        87
+      ]
+    },
+    {
+      "ordinal": 30,
+      "name": "雷雨高地",
+      "act": 7,
+      "description": "雷雨高地草坡，远处闪电、潮湿岩石",
+      "asset_key": "pixel-map-30",
+      "legacy_name": "永恒入口",
+      "legacy_asset_key": "eternal-gate",
+      "monster_ordinals": [
+        88,
+        89,
+        90
+      ]
+    },
+    {
+      "ordinal": 31,
+      "name": "紫电矿脉",
+      "act": 7,
+      "description": "紫色电晶矿洞，晶簇与交错闪电",
+      "asset_key": "pixel-map-31",
+      "legacy_name": "时空裂谷",
+      "legacy_asset_key": "time-space-rift",
+      "monster_ordinals": [
+        91,
+        92,
+        93
+      ]
+    },
+    {
+      "ordinal": 32,
+      "name": "磁暴荒原",
+      "act": 7,
+      "description": "悬浮磁石荒原，电弧石环和龟裂大地",
+      "asset_key": "pixel-map-32",
+      "legacy_name": "永恒战场",
+      "legacy_asset_key": "eternal-battlefield",
+      "monster_ordinals": [
+        94,
+        95,
+        96
+      ]
+    },
+    {
+      "ordinal": 33,
+      "name": "惊雷古塔",
+      "act": 7,
+      "description": "古老雷塔内部，雷符墙面、螺旋石阶和紫电灯",
+      "asset_key": "pixel-map-33",
+      "legacy_name": "永恒法师塔",
+      "legacy_asset_key": "eternal-mage-tower",
+      "monster_ordinals": [
+        97,
+        98,
+        99
+      ]
+    },
+    {
+      "ordinal": 34,
+      "name": "风雷祭庭",
+      "act": 7,
+      "description": "山巅雷霆祭庭，雷鼓、石柱和风暴天空",
+      "asset_key": "pixel-map-34",
+      "legacy_name": "永恒王座",
+      "legacy_asset_key": "eternal-throne",
+      "monster_ordinals": [
+        100,
+        101,
+        102
+      ]
+    },
+    {
+      "ordinal": 35,
+      "name": "雷神王座",
+      "act": 7,
+      "description": "风暴云海上的雷神王座，紫电巨柱与金色日冕",
+      "asset_key": "pixel-map-35",
+      "legacy_name": "永恒圣殿",
+      "legacy_asset_key": "eternal-sanctuary",
+      "monster_ordinals": [
+        103,
+        104,
+        105
+      ]
+    },
+    {
+      "ordinal": 36,
+      "name": "元素交汇地",
+      "act": 8,
+      "description": "山水火风交汇的古代石台，各元素地貌分区",
+      "asset_key": "pixel-map-36",
+      "legacy_name": "混沌入口",
+      "legacy_asset_key": "chaos-gate",
+      "monster_ordinals": [
+        106,
+        107,
+        108
+      ]
+    },
+    {
+      "ordinal": 37,
+      "name": "日月回廊",
+      "act": 8,
+      "description": "太阳与月亮对称的白石回廊，金蓝双色天幕",
+      "asset_key": "pixel-map-37",
+      "legacy_name": "虚空边缘",
+      "legacy_asset_key": "void-edge",
+      "monster_ordinals": [
+        109,
+        110,
+        111
+      ]
+    },
+    {
+      "ordinal": 38,
+      "name": "星砂裂隙",
+      "act": 8,
+      "description": "星空裂隙中的浮岩与星砂，蓝紫宇宙背景",
+      "asset_key": "pixel-map-38",
+      "legacy_name": "混沌裂隙",
+      "legacy_asset_key": "chaos-rift",
+      "monster_ordinals": [
+        112,
+        113,
+        114
+      ]
+    },
+    {
+      "ordinal": 39,
+      "name": "时轮遗迹",
+      "act": 8,
+      "description": "巨型时钟遗迹，黄铜齿轮、沙漏和时间光环",
+      "asset_key": "pixel-map-39",
+      "legacy_name": "混沌魔殿",
+      "legacy_asset_key": "chaos-demon-hall",
+      "monster_ordinals": [
+        115,
+        116,
+        117
+      ]
+    },
+    {
+      "ordinal": 40,
+      "name": "七曜圣堂",
+      "act": 8,
+      "description": "七元素水晶环绕的圣堂，星形地面和中央空台",
+      "asset_key": "pixel-map-40",
+      "legacy_name": "混沌源点",
+      "legacy_asset_key": "chaos-origin-point",
+      "monster_ordinals": [
+        118,
+        119,
+        120
+      ]
+    },
+    {
+      "ordinal": 41,
+      "name": "元初王庭",
+      "act": 8,
+      "description": "星海中的终章王庭，七色巨柱与宏伟元素王座",
+      "asset_key": "pixel-map-41",
+      "legacy_name": "混沌王座",
+      "legacy_asset_key": "chaos-king-throne",
+      "monster_ordinals": [
+        121,
+        122,
+        123
+      ]
+    }
+  ],
+  "monsters": [
+    {
+      "ordinal": 1,
+      "name": "泥团史莱姆",
+      "map_ordinal": 1,
+      "act": 1,
+      "slot": 0,
+      "asset_key": "pixel-monster-001",
+      "legacy_name": "猪",
+      "legacy_asset_key": "training-pig",
+      "type": "normal"
+    },
+    {
+      "ordinal": 2,
+      "name": "草地野猪",
+      "map_ordinal": 1,
+      "act": 1,
+      "slot": 1,
+      "asset_key": "pixel-monster-002",
+      "legacy_name": "鹿",
+      "legacy_asset_key": "training-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 3,
+      "name": "短耳兔",
+      "map_ordinal": 1,
+      "act": 1,
+      "slot": 2,
+      "asset_key": "pixel-monster-003",
+      "legacy_name": "兔子",
+      "legacy_asset_key": "training-rabbit",
+      "type": "normal"
+    },
+    {
+      "ordinal": 4,
+      "name": "岩壳甲虫",
+      "map_ordinal": 2,
+      "act": 1,
+      "slot": 0,
+      "asset_key": "pixel-monster-004",
+      "legacy_name": "小野猪",
+      "legacy_asset_key": "wild-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 5,
+      "name": "砂尾蜥",
+      "map_ordinal": 2,
+      "act": 1,
+      "slot": 1,
+      "asset_key": "pixel-monster-005",
+      "legacy_name": "野狼",
+      "legacy_asset_key": "wild-wolf",
+      "type": "normal"
+    },
+    {
+      "ordinal": 6,
+      "name": "巨角野猪",
+      "map_ordinal": 2,
+      "act": 1,
+      "slot": 2,
+      "asset_key": "pixel-monster-006",
+      "legacy_name": "森林哥布林",
+      "legacy_asset_key": "forest-goblin",
+      "type": "elite"
+    },
+    {
+      "ordinal": 7,
+      "name": "土灵",
+      "map_ordinal": 3,
+      "act": 1,
+      "slot": 0,
+      "asset_key": "pixel-monster-007",
+      "legacy_name": "巨狼",
+      "legacy_asset_key": "giant-alpha-wolf",
+      "type": "normal"
+    },
+    {
+      "ordinal": 8,
+      "name": "荒原狼",
+      "map_ordinal": 3,
+      "act": 1,
+      "slot": 1,
+      "asset_key": "pixel-monster-008",
+      "legacy_name": "树人长老",
+      "legacy_asset_key": "treant-elder",
+      "type": "normal"
+    },
+    {
+      "ordinal": 9,
+      "name": "岩背犀",
+      "map_ordinal": 3,
+      "act": 1,
+      "slot": 2,
+      "asset_key": "pixel-monster-009",
+      "legacy_name": "野猪王",
+      "legacy_asset_key": "wild-boar-king",
+      "type": "elite"
+    },
+    {
+      "ordinal": 10,
+      "name": "矿洞蝙蝠",
+      "map_ordinal": 4,
+      "act": 1,
+      "slot": 0,
+      "asset_key": "pixel-monster-010",
+      "legacy_name": "蝙蝠",
+      "legacy_asset_key": "cave-bat",
+      "type": "normal"
+    },
+    {
+      "ordinal": 11,
+      "name": "铜牙鼠",
+      "map_ordinal": 4,
+      "act": 1,
+      "slot": 1,
+      "asset_key": "pixel-monster-011",
+      "legacy_name": "洞穴蜘蛛",
+      "legacy_asset_key": "cave-spider",
+      "type": "normal"
+    },
+    {
+      "ordinal": 12,
+      "name": "矿镐傀儡",
+      "map_ordinal": 4,
+      "act": 1,
+      "slot": 2,
+      "asset_key": "pixel-monster-012",
+      "legacy_name": "骷髅兵",
+      "legacy_asset_key": "skeleton-soldier",
+      "type": "elite"
+    },
+    {
+      "ordinal": 13,
+      "name": "石拳魔像",
+      "map_ordinal": 5,
+      "act": 1,
+      "slot": 0,
+      "asset_key": "pixel-monster-013",
+      "legacy_name": "骷髅法师",
+      "legacy_asset_key": "skeleton-mage",
+      "type": "normal"
+    },
+    {
+      "ordinal": 14,
+      "name": "砂晶蝎",
+      "map_ordinal": 5,
+      "act": 1,
+      "slot": 1,
+      "asset_key": "pixel-monster-014",
+      "legacy_name": "骸骨之王",
+      "legacy_asset_key": "bone-king",
+      "type": "normal"
+    },
+    {
+      "ordinal": 15,
+      "name": "磐石巨灵",
+      "map_ordinal": 5,
+      "act": 1,
+      "slot": 2,
+      "asset_key": "pixel-monster-015",
+      "legacy_name": "巨型蜘蛛",
+      "legacy_asset_key": "giant-spider",
+      "type": "boss"
+    },
+    {
+      "ordinal": 16,
+      "name": "苔叶蜥",
+      "map_ordinal": 6,
+      "act": 2,
+      "slot": 0,
+      "asset_key": "pixel-monster-016",
+      "legacy_name": "小恶魔",
+      "legacy_asset_key": "small-demon-imp",
+      "type": "normal"
+    },
+    {
+      "ordinal": 17,
+      "name": "树冠蜂",
+      "map_ordinal": 6,
+      "act": 2,
+      "slot": 1,
+      "asset_key": "pixel-monster-017",
+      "legacy_name": "火焰元素",
+      "legacy_asset_key": "fire-elemental",
+      "type": "normal"
+    },
+    {
+      "ordinal": 18,
+      "name": "藤鞭花妖",
+      "map_ordinal": 6,
+      "act": 2,
+      "slot": 2,
+      "asset_key": "pixel-monster-018",
+      "legacy_name": "地狱骑士",
+      "legacy_asset_key": "hell-knight",
+      "type": "elite"
+    },
+    {
+      "ordinal": 19,
+      "name": "伞帽蘑菇怪",
+      "map_ordinal": 7,
+      "act": 2,
+      "slot": 0,
+      "asset_key": "pixel-monster-019",
+      "legacy_name": "地狱魔王",
+      "legacy_asset_key": "hell-demon-king",
+      "type": "normal"
+    },
+    {
+      "ordinal": 20,
+      "name": "沼泽蛙",
+      "map_ordinal": 7,
+      "act": 2,
+      "slot": 1,
+      "asset_key": "pixel-monster-020",
+      "legacy_name": "炎魔",
+      "legacy_asset_key": "fire-demon",
+      "type": "normal"
+    },
+    {
+      "ordinal": 21,
+      "name": "毒孢树精",
+      "map_ordinal": 7,
+      "act": 2,
+      "slot": 2,
+      "asset_key": "pixel-monster-021",
+      "legacy_name": "恶魔巫师",
+      "legacy_asset_key": "demon-wizard",
+      "type": "elite"
+    },
+    {
+      "ordinal": 22,
+      "name": "橡果精",
+      "map_ordinal": 8,
+      "act": 2,
+      "slot": 0,
+      "asset_key": "pixel-monster-022",
+      "legacy_name": "深渊魔虫",
+      "legacy_asset_key": "abyss-worm",
+      "type": "normal"
+    },
+    {
+      "ordinal": 23,
+      "name": "荆棘螳螂",
+      "map_ordinal": 8,
+      "act": 2,
+      "slot": 1,
+      "asset_key": "pixel-monster-023",
+      "legacy_name": "暗影幽灵",
+      "legacy_asset_key": "shadow-ghost",
+      "type": "normal"
+    },
+    {
+      "ordinal": 24,
+      "name": "森卫鹿灵",
+      "map_ordinal": 8,
+      "act": 2,
+      "slot": 2,
+      "asset_key": "pixel-monster-024",
+      "legacy_name": "虚空行者",
+      "legacy_asset_key": "void-walker",
+      "type": "elite"
+    },
+    {
+      "ordinal": 25,
+      "name": "树皮守卫",
+      "map_ordinal": 9,
+      "act": 2,
+      "slot": 0,
+      "asset_key": "pixel-monster-025",
+      "legacy_name": "深渊领主",
+      "legacy_asset_key": "abyss-lord",
+      "type": "normal"
+    },
+    {
+      "ordinal": 26,
+      "name": "翡翠蝶",
+      "map_ordinal": 9,
+      "act": 2,
+      "slot": 1,
+      "asset_key": "pixel-monster-026",
+      "legacy_name": "天使卫士",
+      "legacy_asset_key": "angel-guardian",
+      "type": "normal"
+    },
+    {
+      "ordinal": 27,
+      "name": "古榕之心",
+      "map_ordinal": 9,
+      "act": 2,
+      "slot": 2,
+      "asset_key": "pixel-monster-027",
+      "legacy_name": "炽天使",
+      "legacy_asset_key": "seraph",
+      "type": "boss"
+    },
+    {
+      "ordinal": 28,
+      "name": "溪水史莱姆",
+      "map_ordinal": 10,
+      "act": 3,
+      "slot": 0,
+      "asset_key": "pixel-monster-028",
+      "legacy_name": "天使长",
+      "legacy_asset_key": "archangel",
+      "type": "normal"
+    },
+    {
+      "ordinal": 29,
+      "name": "蓝鳍鱼人",
+      "map_ordinal": 10,
+      "act": 3,
+      "slot": 1,
+      "asset_key": "pixel-monster-029",
+      "legacy_name": "堕落天使",
+      "legacy_asset_key": "fallen-angel",
+      "type": "normal"
+    },
+    {
+      "ordinal": 30,
+      "name": "巨钳河蟹",
+      "map_ordinal": 10,
+      "act": 3,
+      "slot": 2,
+      "asset_key": "pixel-monster-030",
+      "legacy_name": "大天使长",
+      "legacy_asset_key": "archangel-chief",
+      "type": "elite"
+    },
+    {
+      "ordinal": 31,
+      "name": "贝壳寄居蟹",
+      "map_ordinal": 11,
+      "act": 3,
+      "slot": 0,
+      "asset_key": "pixel-monster-031",
+      "legacy_name": "圣殿骑士",
+      "legacy_asset_key": "temple-knight",
+      "type": "normal"
+    },
+    {
+      "ordinal": 32,
+      "name": "水箭海马",
+      "map_ordinal": 11,
+      "act": 3,
+      "slot": 1,
+      "asset_key": "pixel-monster-032",
+      "legacy_name": "神仆",
+      "legacy_asset_key": "divine-servant",
+      "type": "normal"
+    },
+    {
+      "ordinal": 33,
+      "name": "浪潮巨龟",
+      "map_ordinal": 11,
+      "act": 3,
+      "slot": 2,
+      "asset_key": "pixel-monster-033",
+      "legacy_name": "神使",
+      "legacy_asset_key": "divine-messenger",
+      "type": "elite"
+    },
+    {
+      "ordinal": 34,
+      "name": "锈锚亡灵",
+      "map_ordinal": 12,
+      "act": 3,
+      "slot": 0,
+      "asset_key": "pixel-monster-034",
+      "legacy_name": "神将",
+      "legacy_asset_key": "divine-general",
+      "type": "normal"
+    },
+    {
+      "ordinal": 35,
+      "name": "灯笼水母",
+      "map_ordinal": 12,
+      "act": 3,
+      "slot": 1,
+      "asset_key": "pixel-monster-035",
+      "legacy_name": "神官",
+      "legacy_asset_key": "divine-priest",
+      "type": "normal"
+    },
+    {
+      "ordinal": 36,
+      "name": "铁钩船长",
+      "map_ordinal": 12,
+      "act": 3,
+      "slot": 2,
+      "asset_key": "pixel-monster-036",
+      "legacy_name": "神王化身",
+      "legacy_asset_key": "god-king-avatar",
+      "type": "elite"
+    },
+    {
+      "ordinal": 37,
+      "name": "冰晶蝠",
+      "map_ordinal": 13,
+      "act": 3,
+      "slot": 0,
+      "asset_key": "pixel-monster-037",
+      "legacy_name": "审判天使",
+      "legacy_asset_key": "judgment-angel",
+      "type": "normal"
+    },
+    {
+      "ordinal": 38,
+      "name": "雪原狐",
+      "map_ordinal": 13,
+      "act": 3,
+      "slot": 1,
+      "asset_key": "pixel-monster-038",
+      "legacy_name": "永恒守护者",
+      "legacy_asset_key": "eternal-guardian",
+      "type": "normal"
+    },
+    {
+      "ordinal": 39,
+      "name": "霜爪巨熊",
+      "map_ordinal": 13,
+      "act": 3,
+      "slot": 2,
+      "asset_key": "pixel-monster-039",
+      "legacy_name": "时空裂隙",
+      "legacy_asset_key": "time-space-rift-creature",
+      "type": "elite"
+    },
+    {
+      "ordinal": 40,
+      "name": "珊瑚守卫",
+      "map_ordinal": 14,
+      "act": 3,
+      "slot": 0,
+      "asset_key": "pixel-monster-040",
+      "legacy_name": "永恒战士",
+      "legacy_asset_key": "eternal-warrior",
+      "type": "normal"
+    },
+    {
+      "ordinal": 41,
+      "name": "旋流海蛇",
+      "map_ordinal": 14,
+      "act": 3,
+      "slot": 1,
+      "asset_key": "pixel-monster-041",
+      "legacy_name": "永恒法师",
+      "legacy_asset_key": "eternal-mage",
+      "type": "normal"
+    },
+    {
+      "ordinal": 42,
+      "name": "沧海蛟龙",
+      "map_ordinal": 14,
+      "act": 3,
+      "slot": 2,
+      "asset_key": "pixel-monster-042",
+      "legacy_name": "永恒之王",
+      "legacy_asset_key": "eternal-king",
+      "type": "boss"
+    },
+    {
+      "ordinal": 43,
+      "name": "火蜥蜴",
+      "map_ordinal": 15,
+      "act": 4,
+      "slot": 0,
+      "asset_key": "pixel-monster-043",
+      "legacy_name": "永恒骑士",
+      "legacy_asset_key": "eternal-knight",
+      "type": "normal"
+    },
+    {
+      "ordinal": 44,
+      "name": "熔壳甲虫",
+      "map_ordinal": 15,
+      "act": 4,
+      "slot": 1,
+      "asset_key": "pixel-monster-044",
+      "legacy_name": "混沌精灵",
+      "legacy_asset_key": "chaos-sprite",
+      "type": "normal"
+    },
+    {
+      "ordinal": 45,
+      "name": "赤鬃狮",
+      "map_ordinal": 15,
+      "act": 4,
+      "slot": 2,
+      "asset_key": "pixel-monster-045",
+      "legacy_name": "虚空领主",
+      "legacy_asset_key": "void-lord",
+      "type": "elite"
+    },
+    {
+      "ordinal": 46,
+      "name": "岩浆史莱姆",
+      "map_ordinal": 16,
+      "act": 4,
+      "slot": 0,
+      "asset_key": "pixel-monster-046",
+      "legacy_name": "混沌战士",
+      "legacy_asset_key": "chaos-warrior",
+      "type": "normal"
+    },
+    {
+      "ordinal": 47,
+      "name": "熔岩蟹",
+      "map_ordinal": 16,
+      "act": 4,
+      "slot": 1,
+      "asset_key": "pixel-monster-047",
+      "legacy_name": "混沌魔神",
+      "legacy_asset_key": "chaos-demon-god",
+      "type": "normal"
+    },
+    {
+      "ordinal": 48,
+      "name": "熔核巨像",
+      "map_ordinal": 16,
+      "act": 4,
+      "slot": 2,
+      "asset_key": "pixel-monster-048",
+      "legacy_name": "混沌之源",
+      "legacy_asset_key": "chaos-origin",
+      "type": "elite"
+    },
+    {
+      "ordinal": 49,
+      "name": "灰烬侍从",
+      "map_ordinal": 17,
+      "act": 4,
+      "slot": 0,
+      "asset_key": "pixel-monster-049",
+      "legacy_name": "混沌之王",
+      "legacy_asset_key": "chaos-king",
+      "type": "normal"
+    },
+    {
+      "ordinal": 50,
+      "name": "火羽鹰",
+      "map_ordinal": 17,
+      "act": 4,
+      "slot": 1,
+      "asset_key": "pixel-monster-050",
+      "legacy_name": "虚空裂隙鹿",
+      "legacy_asset_key": "map-17-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 51,
+      "name": "焰冠祭司",
+      "map_ordinal": 17,
+      "act": 4,
+      "slot": 2,
+      "asset_key": "pixel-monster-051",
+      "legacy_name": "虚空裂隙兔子",
+      "legacy_asset_key": "map-17-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 52,
+      "name": "炎铠卫士",
+      "map_ordinal": 18,
+      "act": 4,
+      "slot": 0,
+      "asset_key": "pixel-monster-052",
+      "legacy_name": "深渊王座野猪",
+      "legacy_asset_key": "map-18-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 53,
+      "name": "烈焰元素",
+      "map_ordinal": 18,
+      "act": 4,
+      "slot": 1,
+      "asset_key": "pixel-monster-053",
+      "legacy_name": "深渊王座鹿",
+      "legacy_asset_key": "map-18-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 54,
+      "name": "赤日凤凰",
+      "map_ordinal": 18,
+      "act": 4,
+      "slot": 2,
+      "asset_key": "pixel-monster-054",
+      "legacy_name": "深渊王座兔子",
+      "legacy_asset_key": "map-18-rabbit",
+      "type": "boss"
+    },
+    {
+      "ordinal": 55,
+      "name": "铜羽雀",
+      "map_ordinal": 19,
+      "act": 5,
+      "slot": 0,
+      "asset_key": "pixel-monster-055",
+      "legacy_name": "天界入口野猪",
+      "legacy_asset_key": "map-19-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 56,
+      "name": "齿轮蜘蛛",
+      "map_ordinal": 19,
+      "act": 5,
+      "slot": 1,
+      "asset_key": "pixel-monster-056",
+      "legacy_name": "天界入口鹿",
+      "legacy_asset_key": "map-19-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 57,
+      "name": "铁甲犰狳",
+      "map_ordinal": 19,
+      "act": 5,
+      "slot": 2,
+      "asset_key": "pixel-monster-057",
+      "legacy_name": "天界入口兔子",
+      "legacy_asset_key": "map-19-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 58,
+      "name": "发条鼠",
+      "map_ordinal": 20,
+      "act": 5,
+      "slot": 0,
+      "asset_key": "pixel-monster-058",
+      "legacy_name": "天使圣殿野猪",
+      "legacy_asset_key": "map-20-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 59,
+      "name": "扳手傀儡",
+      "map_ordinal": 20,
+      "act": 5,
+      "slot": 1,
+      "asset_key": "pixel-monster-059",
+      "legacy_name": "天使圣殿鹿",
+      "legacy_asset_key": "map-20-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 60,
+      "name": "重锤机兵",
+      "map_ordinal": 20,
+      "act": 5,
+      "slot": 2,
+      "asset_key": "pixel-monster-060",
+      "legacy_name": "天使圣殿兔子",
+      "legacy_asset_key": "map-20-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 61,
+      "name": "镜面史莱姆",
+      "map_ordinal": 21,
+      "act": 5,
+      "slot": 0,
+      "asset_key": "pixel-monster-061",
+      "legacy_name": "荣耀大厅野猪",
+      "legacy_asset_key": "map-21-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 62,
+      "name": "银翼蛾",
+      "map_ordinal": 21,
+      "act": 5,
+      "slot": 1,
+      "asset_key": "pixel-monster-062",
+      "legacy_name": "荣耀大厅鹿",
+      "legacy_asset_key": "map-21-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 63,
+      "name": "镜刃哨卫",
+      "map_ordinal": 21,
+      "act": 5,
+      "slot": 2,
+      "asset_key": "pixel-monster-063",
+      "legacy_name": "荣耀大厅兔子",
+      "legacy_asset_key": "map-21-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 64,
+      "name": "宝箱怪",
+      "map_ordinal": 22,
+      "act": 5,
+      "slot": 0,
+      "asset_key": "pixel-monster-064",
+      "legacy_name": "堕落天使领域野猪",
+      "legacy_asset_key": "map-22-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 65,
+      "name": "金币精",
+      "map_ordinal": 22,
+      "act": 5,
+      "slot": 1,
+      "asset_key": "pixel-monster-065",
+      "legacy_name": "堕落天使领域鹿",
+      "legacy_asset_key": "map-22-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 66,
+      "name": "金甲狮鹫",
+      "map_ordinal": 22,
+      "act": 5,
+      "slot": 2,
+      "asset_key": "pixel-monster-066",
+      "legacy_name": "堕落天使领域兔子",
+      "legacy_asset_key": "map-22-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 67,
+      "name": "铂金卫士",
+      "map_ordinal": 23,
+      "act": 5,
+      "slot": 0,
+      "asset_key": "pixel-monster-067",
+      "legacy_name": "大天使圣殿野猪",
+      "legacy_asset_key": "map-23-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 68,
+      "name": "鎏金飞蛇",
+      "map_ordinal": 23,
+      "act": 5,
+      "slot": 1,
+      "asset_key": "pixel-monster-068",
+      "legacy_name": "大天使圣殿鹿",
+      "legacy_asset_key": "map-23-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 69,
+      "name": "铸星巨兵",
+      "map_ordinal": 23,
+      "act": 5,
+      "slot": 2,
+      "asset_key": "pixel-monster-069",
+      "legacy_name": "大天使圣殿兔子",
+      "legacy_asset_key": "map-23-rabbit",
+      "type": "boss"
+    },
+    {
+      "ordinal": 70,
+      "name": "旋风精",
+      "map_ordinal": 24,
+      "act": 6,
+      "slot": 0,
+      "asset_key": "pixel-monster-070",
+      "legacy_name": "神域入口野猪",
+      "legacy_asset_key": "map-24-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 71,
+      "name": "疾风兔",
+      "map_ordinal": 24,
+      "act": 6,
+      "slot": 1,
+      "asset_key": "pixel-monster-071",
+      "legacy_name": "神域入口鹿",
+      "legacy_asset_key": "map-24-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 72,
+      "name": "长翼隼",
+      "map_ordinal": 24,
+      "act": 6,
+      "slot": 2,
+      "asset_key": "pixel-monster-072",
+      "legacy_name": "神域入口兔子",
+      "legacy_asset_key": "map-24-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 73,
+      "name": "石羽鸟",
+      "map_ordinal": 25,
+      "act": 6,
+      "slot": 0,
+      "asset_key": "pixel-monster-073",
+      "legacy_name": "神仆大厅野猪",
+      "legacy_asset_key": "map-25-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 74,
+      "name": "风铃妖",
+      "map_ordinal": 25,
+      "act": 6,
+      "slot": 1,
+      "asset_key": "pixel-monster-074",
+      "legacy_name": "神仆大厅鹿",
+      "legacy_asset_key": "map-25-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 75,
+      "name": "云鬃山羊",
+      "map_ordinal": 25,
+      "act": 6,
+      "slot": 2,
+      "asset_key": "pixel-monster-075",
+      "legacy_name": "神仆大厅兔子",
+      "legacy_asset_key": "map-25-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 76,
+      "name": "浮空水母",
+      "map_ordinal": 26,
+      "act": 6,
+      "slot": 0,
+      "asset_key": "pixel-monster-076",
+      "legacy_name": "神官圣殿野猪",
+      "legacy_asset_key": "map-26-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 77,
+      "name": "羽尾蜥",
+      "map_ordinal": 26,
+      "act": 6,
+      "slot": 1,
+      "asset_key": "pixel-monster-077",
+      "legacy_name": "神官圣殿鹿",
+      "legacy_asset_key": "map-26-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 78,
+      "name": "苍羽狮鹫",
+      "map_ordinal": 26,
+      "act": 6,
+      "slot": 2,
+      "asset_key": "pixel-monster-078",
+      "legacy_name": "神官圣殿兔子",
+      "legacy_asset_key": "map-26-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 79,
+      "name": "气旋狼",
+      "map_ordinal": 27,
+      "act": 6,
+      "slot": 0,
+      "asset_key": "pixel-monster-079",
+      "legacy_name": "神将殿野猪",
+      "legacy_asset_key": "map-27-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 80,
+      "name": "薄翼蝶",
+      "map_ordinal": 27,
+      "act": 6,
+      "slot": 1,
+      "asset_key": "pixel-monster-080",
+      "legacy_name": "神将殿鹿",
+      "legacy_asset_key": "map-27-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 81,
+      "name": "旋风武僧",
+      "map_ordinal": 27,
+      "act": 6,
+      "slot": 2,
+      "asset_key": "pixel-monster-081",
+      "legacy_name": "神将殿兔子",
+      "legacy_asset_key": "map-27-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 82,
+      "name": "云纹哨卫",
+      "map_ordinal": 28,
+      "act": 6,
+      "slot": 0,
+      "asset_key": "pixel-monster-082",
+      "legacy_name": "神王殿野猪",
+      "legacy_asset_key": "map-28-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 83,
+      "name": "星羽鸮",
+      "map_ordinal": 28,
+      "act": 6,
+      "slot": 1,
+      "asset_key": "pixel-monster-083",
+      "legacy_name": "神王殿鹿",
+      "legacy_asset_key": "map-28-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 84,
+      "name": "风语贤者",
+      "map_ordinal": 28,
+      "act": 6,
+      "slot": 2,
+      "asset_key": "pixel-monster-084",
+      "legacy_name": "神王殿兔子",
+      "legacy_asset_key": "map-28-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 85,
+      "name": "风环守卫",
+      "map_ordinal": 29,
+      "act": 6,
+      "slot": 0,
+      "asset_key": "pixel-monster-085",
+      "legacy_name": "审判之庭野猪",
+      "legacy_asset_key": "map-29-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 86,
+      "name": "流云元素",
+      "map_ordinal": 29,
+      "act": 6,
+      "slot": 1,
+      "asset_key": "pixel-monster-086",
+      "legacy_name": "审判之庭鹿",
+      "legacy_asset_key": "map-29-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 87,
+      "name": "天穹巨鹏",
+      "map_ordinal": 29,
+      "act": 6,
+      "slot": 2,
+      "asset_key": "pixel-monster-087",
+      "legacy_name": "审判之庭兔子",
+      "legacy_asset_key": "map-29-rabbit",
+      "type": "boss"
+    },
+    {
+      "ordinal": 88,
+      "name": "电尾鼠",
+      "map_ordinal": 30,
+      "act": 7,
+      "slot": 0,
+      "asset_key": "pixel-monster-088",
+      "legacy_name": "永恒入口野猪",
+      "legacy_asset_key": "map-30-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 89,
+      "name": "雷纹狼",
+      "map_ordinal": 30,
+      "act": 7,
+      "slot": 1,
+      "asset_key": "pixel-monster-089",
+      "legacy_name": "永恒入口鹿",
+      "legacy_asset_key": "map-30-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 90,
+      "name": "闪角公羊",
+      "map_ordinal": 30,
+      "act": 7,
+      "slot": 2,
+      "asset_key": "pixel-monster-090",
+      "legacy_name": "永恒入口兔子",
+      "legacy_asset_key": "map-30-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 91,
+      "name": "电晶蝠",
+      "map_ordinal": 31,
+      "act": 7,
+      "slot": 0,
+      "asset_key": "pixel-monster-091",
+      "legacy_name": "时空裂谷野猪",
+      "legacy_asset_key": "map-31-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 92,
+      "name": "磁石甲虫",
+      "map_ordinal": 31,
+      "act": 7,
+      "slot": 1,
+      "asset_key": "pixel-monster-092",
+      "legacy_name": "时空裂谷鹿",
+      "legacy_asset_key": "map-31-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 93,
+      "name": "紫晶巨蝎",
+      "map_ordinal": 31,
+      "act": 7,
+      "slot": 2,
+      "asset_key": "pixel-monster-093",
+      "legacy_name": "时空裂谷兔子",
+      "legacy_asset_key": "map-31-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 94,
+      "name": "电弧史莱姆",
+      "map_ordinal": 32,
+      "act": 7,
+      "slot": 0,
+      "asset_key": "pixel-monster-094",
+      "legacy_name": "永恒战场野猪",
+      "legacy_asset_key": "map-32-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 95,
+      "name": "悬磁傀儡",
+      "map_ordinal": 32,
+      "act": 7,
+      "slot": 1,
+      "asset_key": "pixel-monster-095",
+      "legacy_name": "永恒战场鹿",
+      "legacy_asset_key": "map-32-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 96,
+      "name": "铁羽雷鹫",
+      "map_ordinal": 32,
+      "act": 7,
+      "slot": 2,
+      "asset_key": "pixel-monster-096",
+      "legacy_name": "永恒战场兔子",
+      "legacy_asset_key": "map-32-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 97,
+      "name": "雷符纸偶",
+      "map_ordinal": 33,
+      "act": 7,
+      "slot": 0,
+      "asset_key": "pixel-monster-097",
+      "legacy_name": "永恒法师塔野猪",
+      "legacy_asset_key": "map-33-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 98,
+      "name": "电刃卫士",
+      "map_ordinal": 33,
+      "act": 7,
+      "slot": 1,
+      "asset_key": "pixel-monster-098",
+      "legacy_name": "永恒法师塔鹿",
+      "legacy_asset_key": "map-33-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 99,
+      "name": "惊雷术士",
+      "map_ordinal": 33,
+      "act": 7,
+      "slot": 2,
+      "asset_key": "pixel-monster-099",
+      "legacy_name": "永恒法师塔兔子",
+      "legacy_asset_key": "map-33-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 100,
+      "name": "雷霆元素",
+      "map_ordinal": 34,
+      "act": 7,
+      "slot": 0,
+      "asset_key": "pixel-monster-100",
+      "legacy_name": "永恒王座野猪",
+      "legacy_asset_key": "map-34-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 101,
+      "name": "紫电脉蛇",
+      "map_ordinal": 34,
+      "act": 7,
+      "slot": 1,
+      "asset_key": "pixel-monster-101",
+      "legacy_name": "永恒王座鹿",
+      "legacy_asset_key": "map-34-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 102,
+      "name": "雷鼓力士",
+      "map_ordinal": 34,
+      "act": 7,
+      "slot": 2,
+      "asset_key": "pixel-monster-102",
+      "legacy_name": "永恒王座兔子",
+      "legacy_asset_key": "map-34-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 103,
+      "name": "天罚哨卫",
+      "map_ordinal": 35,
+      "act": 7,
+      "slot": 0,
+      "asset_key": "pixel-monster-103",
+      "legacy_name": "永恒圣殿野猪",
+      "legacy_asset_key": "map-35-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 104,
+      "name": "雷羽狮鹫",
+      "map_ordinal": 35,
+      "act": 7,
+      "slot": 1,
+      "asset_key": "pixel-monster-104",
+      "legacy_name": "永恒圣殿鹿",
+      "legacy_asset_key": "map-35-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 105,
+      "name": "九霄雷龙",
+      "map_ordinal": 35,
+      "act": 7,
+      "slot": 2,
+      "asset_key": "pixel-monster-105",
+      "legacy_name": "永恒圣殿兔子",
+      "legacy_asset_key": "map-35-rabbit",
+      "type": "boss"
+    },
+    {
+      "ordinal": 106,
+      "name": "岩焰龟",
+      "map_ordinal": 36,
+      "act": 8,
+      "slot": 0,
+      "asset_key": "pixel-monster-106",
+      "legacy_name": "混沌入口野猪",
+      "legacy_asset_key": "map-36-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 107,
+      "name": "水木精",
+      "map_ordinal": 36,
+      "act": 8,
+      "slot": 1,
+      "asset_key": "pixel-monster-107",
+      "legacy_name": "混沌入口鹿",
+      "legacy_asset_key": "map-36-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 108,
+      "name": "风雷獾",
+      "map_ordinal": 36,
+      "act": 8,
+      "slot": 2,
+      "asset_key": "pixel-monster-108",
+      "legacy_name": "混沌入口兔子",
+      "legacy_asset_key": "map-36-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 109,
+      "name": "日辉守卫",
+      "map_ordinal": 37,
+      "act": 8,
+      "slot": 0,
+      "asset_key": "pixel-monster-109",
+      "legacy_name": "虚空边缘野猪",
+      "legacy_asset_key": "map-37-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 110,
+      "name": "月影鹿",
+      "map_ordinal": 37,
+      "act": 8,
+      "slot": 1,
+      "asset_key": "pixel-monster-110",
+      "legacy_name": "虚空边缘鹿",
+      "legacy_asset_key": "map-37-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 111,
+      "name": "蚀光双首狼",
+      "map_ordinal": 37,
+      "act": 8,
+      "slot": 2,
+      "asset_key": "pixel-monster-111",
+      "legacy_name": "虚空边缘兔子",
+      "legacy_asset_key": "map-37-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 112,
+      "name": "星砂蝎",
+      "map_ordinal": 38,
+      "act": 8,
+      "slot": 0,
+      "asset_key": "pixel-monster-112",
+      "legacy_name": "混沌裂隙野猪",
+      "legacy_asset_key": "map-38-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 113,
+      "name": "晶翼蝶",
+      "map_ordinal": 38,
+      "act": 8,
+      "slot": 1,
+      "asset_key": "pixel-monster-113",
+      "legacy_name": "混沌裂隙鹿",
+      "legacy_asset_key": "map-38-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 114,
+      "name": "陨星巨像",
+      "map_ordinal": 38,
+      "act": 8,
+      "slot": 2,
+      "asset_key": "pixel-monster-114",
+      "legacy_name": "混沌裂隙兔子",
+      "legacy_asset_key": "map-38-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 115,
+      "name": "钟摆傀儡",
+      "map_ordinal": 39,
+      "act": 8,
+      "slot": 0,
+      "asset_key": "pixel-monster-115",
+      "legacy_name": "混沌魔殿野猪",
+      "legacy_asset_key": "map-39-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 116,
+      "name": "时砂幽灵",
+      "map_ordinal": 39,
+      "act": 8,
+      "slot": 1,
+      "asset_key": "pixel-monster-116",
+      "legacy_name": "混沌魔殿鹿",
+      "legacy_asset_key": "map-39-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 117,
+      "name": "刻轮守卫",
+      "map_ordinal": 39,
+      "act": 8,
+      "slot": 2,
+      "asset_key": "pixel-monster-117",
+      "legacy_name": "混沌魔殿兔子",
+      "legacy_asset_key": "map-39-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 118,
+      "name": "七曜灵偶",
+      "map_ordinal": 40,
+      "act": 8,
+      "slot": 0,
+      "asset_key": "pixel-monster-118",
+      "legacy_name": "混沌源点野猪",
+      "legacy_asset_key": "map-40-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 119,
+      "name": "流光狮鹫",
+      "map_ordinal": 40,
+      "act": 8,
+      "slot": 1,
+      "asset_key": "pixel-monster-119",
+      "legacy_name": "混沌源点鹿",
+      "legacy_asset_key": "map-40-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 120,
+      "name": "星环祭司",
+      "map_ordinal": 40,
+      "act": 8,
+      "slot": 2,
+      "asset_key": "pixel-monster-120",
+      "legacy_name": "混沌源点兔子",
+      "legacy_asset_key": "map-40-rabbit",
+      "type": "elite"
+    },
+    {
+      "ordinal": 121,
+      "name": "元素卫士",
+      "map_ordinal": 41,
+      "act": 8,
+      "slot": 0,
+      "asset_key": "pixel-monster-121",
+      "legacy_name": "混沌王座野猪",
+      "legacy_asset_key": "map-41-boar",
+      "type": "normal"
+    },
+    {
+      "ordinal": 122,
+      "name": "星界游蛇",
+      "map_ordinal": 41,
+      "act": 8,
+      "slot": 1,
+      "asset_key": "pixel-monster-122",
+      "legacy_name": "混沌王座鹿",
+      "legacy_asset_key": "map-41-deer",
+      "type": "normal"
+    },
+    {
+      "ordinal": 123,
+      "name": "元初巨龙",
+      "map_ordinal": 41,
+      "act": 8,
+      "slot": 2,
+      "asset_key": "pixel-monster-123",
+      "legacy_name": "混沌王座兔子",
+      "legacy_asset_key": "map-41-rabbit",
+      "type": "boss"
+    }
+  ]
+}

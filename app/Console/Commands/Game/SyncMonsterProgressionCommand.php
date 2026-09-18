@@ -3,6 +3,7 @@
 namespace App\Console\Commands\Game;
 
 use App\Models\Game\GameMonsterDefinition;
+use App\Services\Game\PixelWorldCatalog;
 use Illuminate\Console\Command;
 
 class SyncMonsterProgressionCommand extends Command
@@ -16,6 +17,7 @@ class SyncMonsterProgressionCommand extends Command
     {
         $dryRun = (bool) $this->option('dry-run');
         $seeded = require database_path('seeders/Game/Data/monsters.php');
+        $legacyNames = array_column(PixelWorldCatalog::plan()['monsters'], 'legacy_name');
         $fields = ['type', 'level', 'hp_base', 'attack_base', 'defense_base', 'experience_base'];
 
         $updated = 0;
@@ -23,13 +25,14 @@ class SyncMonsterProgressionCommand extends Command
         $missing = 0;
         $rows = [];
 
-        foreach ($seeded as $seed) {
+        foreach ($seeded as $index => $seed) {
             $name = (string) ($seed['name'] ?? '');
             if ($name === '') {
                 continue;
             }
 
-            $definition = GameMonsterDefinition::query()->where('name', $name)->first();
+            $definition = GameMonsterDefinition::query()->where('name', $name)->first()
+                ?? GameMonsterDefinition::query()->where('name', $legacyNames[$index] ?? $name)->first();
             if (! $definition instanceof GameMonsterDefinition) {
                 $missing++;
                 $this->warn("未找到怪物: {$name}");

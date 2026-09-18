@@ -21,7 +21,7 @@ class GameItemDefinitionFactory extends Factory
             'name' => fake()->unique()->words(2, true),
             'type' => $type,
             'required_level' => fake()->numberBetween(1, 80),
-            'icon' => $iconKey . '.png',
+            'icon' => $iconKey.'.png',
             'icon_prompt' => fake()->sentence(),
             'description' => fake()->sentence(),
             'is_active' => true,
@@ -106,8 +106,8 @@ class GameItemDefinitionFactory extends Factory
     private function equipmentAttributes(string $type): array
     {
         $subType = match ($type) {
-            'weapon' => fake()->randomElement(['sword', 'axe', 'mace', 'staff', 'bow', 'dagger']),
-            'helmet', 'armor', 'gloves', 'boots' => fake()->randomElement(['cloth', 'leather', 'mail', 'plate']),
+            'weapon' => 'staff',
+            'helmet', 'armor', 'gloves', 'boots', 'belt' => 'cloth',
             default => null,
         };
 

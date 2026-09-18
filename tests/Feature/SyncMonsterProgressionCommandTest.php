@@ -12,6 +12,8 @@ class SyncMonsterProgressionCommandTest extends TestCase
 
     public function test_it_updates_existing_monsters_by_name_without_renaming(): void
     {
+        GameMonsterDefinition::query()->delete();
+
         $wolf = GameMonsterDefinition::factory()->create([
             'name' => '野狼',
             'type' => 'normal',
@@ -52,6 +54,7 @@ class SyncMonsterProgressionCommandTest extends TestCase
 
     public function test_dry_run_does_not_write(): void
     {
+        GameMonsterDefinition::query()->delete();
         $alpha = GameMonsterDefinition::factory()->create([
             'name' => '巨狼',
             'type' => 'elite',

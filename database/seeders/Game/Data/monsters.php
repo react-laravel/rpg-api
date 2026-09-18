@@ -615,14 +615,20 @@ $defaultDropTable = static function (array $monster): array {
     };
 };
 
+$pixelWorld = json_decode(file_get_contents(__DIR__.'/pixel-world.json'), true, 512, JSON_THROW_ON_ERROR);
+
 return array_map(
-    static function (array $monster, int $index) use ($applyLayerStats, $assetKeys, $prompts, $defaultDropTable): array {
+    static function (array $monster, int $index) use ($applyLayerStats, $defaultDropTable, $pixelWorld): array {
         $monster = $applyLayerStats($monster, $index);
+        $entry = $pixelWorld['monsters'][$index];
+        $dropTable = $monster['drop_table'] ?? $defaultDropTable($monster);
+        $dropTable['equipment_level'] = $pixelWorld['chapters'][$entry['act'] - 1]['equipment_level'];
 
         return array_merge($monster, [
-            'asset_key' => $assetKeys[$index],
-            'icon_prompt' => $prompts[$assetKeys[$index]],
-            'drop_table' => $monster['drop_table'] ?? $defaultDropTable($monster),
+            'name' => $entry['name'],
+            'asset_key' => $entry['asset_key'],
+            'icon_prompt' => '复古RPG像素怪物：'.$entry['name'].'。完整主体，透明背景，无文字。',
+            'drop_table' => $dropTable,
         ]);
     },
     $monsters,

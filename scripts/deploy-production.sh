@@ -10,13 +10,20 @@ STAMP="$(date +%Y%m%d%H%M%S)"
 STAGING="$RELEASES/.staging-$STAMP-$$"
 RELEASE="$RELEASES/$STAMP"
 PREVIOUS="$(readlink -f "$CURRENT" 2>/dev/null || true)"
+MAINTENANCE_STARTED=false
 
 mkdir -p "$RELEASES" "$SHARED/storage/framework/cache/data" \
   "$SHARED/storage/framework/sessions" "$SHARED/storage/framework/views" \
   "$SHARED/storage/logs" "$SHARED/storage/app/public"
 test -s "$SHARED/.env"
 
-cleanup() { rm -rf "$STAGING"; }
+cleanup() {
+  rm -rf "$STAGING"
+  if [ "$MAINTENANCE_STARTED" = true ] && [ -f "$CURRENT/artisan" ]; then
+    php "$CURRENT/artisan" up || true
+    sudo -n supervisorctl start rpg-api:* || true
+  fi
+}
 trap cleanup EXIT
 
 rsync -a --delete \
@@ -33,6 +40,13 @@ chmod -R ug+rwX bootstrap/cache "$SHARED/storage"
 
 php artisan config:cache
 php artisan view:cache
+
+# 先停写和停止旧队列，再执行备份及数据迁移，避免旧进程继续产生退役装备。
+if [ -f "$CURRENT/artisan" ]; then
+  php "$CURRENT/artisan" down --retry=5
+  MAINTENANCE_STARTED=true
+  sudo -n supervisorctl stop rpg-api:*
+fi
 php artisan migrate --force
 php artisan rpg:sync-monster-progression
 
@@ -43,6 +57,8 @@ php "$CURRENT/artisan" queue:restart || true
 sudo -n supervisorctl reread
 sudo -n supervisorctl update
 sudo -n supervisorctl restart rpg-api:*
+php "$CURRENT/artisan" up
+MAINTENANCE_STARTED=false
 
 if ! curl -kfsS --max-time 10 --resolve rpg-api.dogeow.com:443:127.0.0.1 \
   https://rpg-api.dogeow.com/up >/dev/null; then

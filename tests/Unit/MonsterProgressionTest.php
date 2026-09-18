@@ -34,12 +34,12 @@ class MonsterProgressionTest extends TestCase
     {
         $maps = $this->maps();
 
-        $wolf = MonsterProgression::apply(['name' => '野狼'], 4, $maps);
-        $alpha = MonsterProgression::apply(['name' => '巨狼'], 6, $maps);
+        $wolf = MonsterProgression::apply(['name' => '砂尾蜥'], 4, $maps);
+        $alpha = MonsterProgression::apply(['name' => '土灵'], 6, $maps);
         $boarKing = MonsterProgression::apply(['name' => '野猪王'], 8, $maps);
 
-        $this->assertSame('幽暗森林', $maps[1]['name']);
-        $this->assertSame('哥布林巢穴', $maps[2]['name']);
+        $this->assertSame('砾石小径', $maps[1]['name']);
+        $this->assertSame('赤土荒坡', $maps[2]['name']);
 
         $this->assertSame('normal', $wolf['type']);
         $this->assertSame(6, $wolf['hp_base']);
@@ -95,7 +95,7 @@ class MonsterProgressionTest extends TestCase
     public function test_act_finale_marks_squishy_slot_as_tanky_boss(): void
     {
         $maps = $this->maps();
-        $this->assertSame('树人圣地', $maps[4]['name']);
+        $this->assertSame('大地石庭', $maps[4]['name']);
 
         $tank = MonsterProgression::apply(['name' => 'tank'], 12, $maps);
         $boss = MonsterProgression::apply(['name' => 'boss'], 14, $maps);
@@ -110,11 +110,11 @@ class MonsterProgressionTest extends TestCase
     {
         $seeded = require database_path('seeders/Game/Data/monsters.php');
 
-        $this->assertSame('野狼', $seeded[4]['name']);
+        $this->assertSame('砂尾蜥', $seeded[4]['name']);
         $this->assertSame(6, $seeded[4]['hp_base']);
         $this->assertSame('normal', $seeded[4]['type']);
 
-        $this->assertSame('巨狼', $seeded[6]['name']);
+        $this->assertSame('土灵', $seeded[6]['name']);
         $this->assertSame(15, $seeded[6]['hp_base']);
         $this->assertSame('normal', $seeded[6]['type']);
         $this->assertSame(9, $seeded[6]['experience_base']);

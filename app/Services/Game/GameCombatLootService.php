@@ -244,7 +244,7 @@ class GameCombatLootService
             'sub_type' => null,
             'base_stats' => [],
             'required_level' => 1,
-            'icon' => 'gem',
+            'icon' => GameItemDefinition::GEM_ICONS[array_key_first($gemStats)] ?? 'gem',
             'description' => '可镶嵌到装备上，提升属性',
             'is_active' => true,
             'sockets' => 0,

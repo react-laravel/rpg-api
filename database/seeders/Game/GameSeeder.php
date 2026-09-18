@@ -37,6 +37,9 @@ class GameSeeder extends Seeder
                 'is_active' => true,
             ]));
         }
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("SELECT setval(pg_get_serial_sequence('game_item_definitions', 'id'), GREATEST(COALESCE((SELECT MAX(id) FROM game_item_definitions), 1), nextval(pg_get_serial_sequence('game_item_definitions', 'id'))), true)");
+        }
     }
 
     private function seedSkillDefinitions(): void

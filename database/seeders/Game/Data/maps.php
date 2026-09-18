@@ -90,9 +90,15 @@ $maps = [
 ];
 
 $monstersPerMap = 3;
+$pixelWorld = json_decode(file_get_contents(__DIR__.'/pixel-world.json'), true, 512, JSON_THROW_ON_ERROR);
 foreach ($maps as $index => &$map) {
     $base = $index * $monstersPerMap;
     $map['monster_ids'] = [$base + 1, $base + 2, $base + 3];
+    $entry = $pixelWorld['maps'][$index];
+    $map['name'] = $entry['name'];
+    $map['description'] = $entry['description'];
+    $map['asset_key'] = $entry['asset_key'];
+    $map['icon_prompt'] = '复古RPG像素地图，'.$entry['description'].'。中央保留战斗空地，无人物和文字。';
 }
 unset($map);
 

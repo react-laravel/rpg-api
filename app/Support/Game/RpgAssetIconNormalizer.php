@@ -10,7 +10,7 @@ class RpgAssetIconNormalizer
     /** @var list<string>|null */
     private static ?array $skillLegacyFiles = null;
 
-    /** @var list<string>|null */
+    /** @var array<int, string>|null */
     private static ?array $itemLegacyFiles = null;
 
     /** @var list<string>|null */
@@ -70,7 +70,7 @@ class RpgAssetIconNormalizer
     }
 
     /**
-     * @param  list<string>  $legacyFiles
+     * @param  array<int, string>  $legacyFiles
      */
     private static function normalizeIndexedAsset(?string $asset, string $kind, array $legacyFiles): ?string
     {
@@ -83,7 +83,7 @@ class RpgAssetIconNormalizer
         }
 
         $replaceBasename = static function (string $basename) use ($legacyFiles, $kind): string {
-            if (! preg_match('/^' . $kind . '_(\\d+)\\.(png|jpe?g|webp|gif|svg|jpg)$/i', $basename, $match)) {
+            if (! preg_match('/^'.$kind.'_(\\d+)\\.(png|jpe?g|webp|gif|svg|jpg)$/i', $basename, $match)) {
                 return $basename;
             }
 
@@ -102,7 +102,7 @@ class RpgAssetIconNormalizer
             }
 
             $dir = dirname($path);
-            $newPath = ($dir === '.' || $dir === '/' ? '' : rtrim($dir, '/') . '/') . $newBasename;
+            $newPath = ($dir === '.' || $dir === '/' ? '' : rtrim($dir, '/').'/').$newBasename;
             $scheme = $parts['scheme'] ?? 'https';
             $host = $parts['host'] ?? '';
 
@@ -127,9 +127,9 @@ class RpgAssetIconNormalizer
         self::$monsterLegacyFiles = array_map(
             static function (array $monster): string {
                 $assetKey = $monster['asset_key']
-                    ?? ('monster_' . strtolower(str_replace(' ', '_', (string) $monster['name'])));
+                    ?? ('monster_'.strtolower(str_replace(' ', '_', (string) $monster['name'])));
 
-                return $assetKey . '.png';
+                return $assetKey.'.png';
             },
             $monsters
         );
@@ -155,7 +155,7 @@ class RpgAssetIconNormalizer
         ];
         $skills = [];
         foreach ($skillFiles as $file) {
-            $path = $skillsDir . '/' . $file;
+            $path = $skillsDir.'/'.$file;
             if (file_exists($path)) {
                 $skills = array_merge($skills, require $path);
             }
@@ -168,10 +168,10 @@ class RpgAssetIconNormalizer
                 }
 
                 if (! empty($skill['effect_key']) && is_string($skill['effect_key'])) {
-                    return $skill['effect_key'] . '.png';
+                    return $skill['effect_key'].'.png';
                 }
 
-                return 'skill_' . strtolower(str_replace(' ', '_', (string) $skill['name'])) . '.png';
+                return 'skill_'.strtolower(str_replace(' ', '_', (string) $skill['name'])).'.png';
             },
             $skills
         );
@@ -180,7 +180,7 @@ class RpgAssetIconNormalizer
     }
 
     /**
-     * @return list<string>
+     * @return array<int, string>
      */
     private static function itemLegacyFiles(): array
     {
@@ -191,14 +191,12 @@ class RpgAssetIconNormalizer
         /** @var list<array<string, mixed>> $items */
         $items = require database_path('seeders/Game/Data/items.php');
 
-        self::$itemLegacyFiles = array_map(
-            static function (array $item): string {
-                $assetKey = $item['asset_key'] ?? ('item_' . $item['id']);
-
-                return $assetKey . '.png';
-            },
-            $items
-        );
+        self::$itemLegacyFiles = [];
+        foreach ($items as $item) {
+            // 删除职业物品后数组下标会变化，但旧文件名中的定义 ID 不变。
+            $assetKey = $item['asset_key'] ?? ('item_'.$item['id']);
+            self::$itemLegacyFiles[(int) $item['id'] - 1] = $assetKey.'.png';
+        }
 
         return self::$itemLegacyFiles;
     }
@@ -217,9 +215,9 @@ class RpgAssetIconNormalizer
 
         self::$mapLegacyFiles = array_map(
             static function (array $map, int $index): string {
-                $assetKey = $map['asset_key'] ?? ('map_' . ($index + 1));
+                $assetKey = $map['asset_key'] ?? ('map_'.($index + 1));
 
-                return $assetKey . '.jpg';
+                return $assetKey.'.jpg';
             },
             $maps,
             array_keys($maps)
