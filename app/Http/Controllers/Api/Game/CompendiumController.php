@@ -19,8 +19,9 @@ class CompendiumController extends Controller
     public function items(Request $request): JsonResponse
     {
         $items = GameItemDefinition::where('is_active', true)
-            ->orderBy('type')
             ->orderBy('required_level')
+            ->orderBy('type')
+            ->orderBy('id')
             ->get();
 
         $character = $this->getCharacter($request);
