@@ -92,7 +92,8 @@ class GameCombatLogService
             'loot_dropped' => null,
             'experience_gained' => 0,
             'copper_gained' => 0,
-            'duration_seconds' => $startTime->diffInSeconds(now()),
+            // Carbon returns fractional seconds; the database column stores whole seconds.
+            'duration_seconds' => max(0, (int) $startTime->diffInSeconds(now())),
             'skills_used' => $roundResult['new_skills_aggregated'],
             // 角色属性
             'character_level' => $character->level,
