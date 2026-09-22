@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property array<int, array<string,mixed>|null>|null $combat_monsters
  * @property array<string, mixed>|null $combat_buffs
+ * @property array<string, mixed>|null $pet
  * @property Carbon|null $combat_monsters_refreshed_at
  * @property int|null $combat_monster_id
  * @property int|null $combat_monster_hp
@@ -61,6 +62,7 @@ class GameCharacter extends Model
         'combat_skills_used',
         'combat_skill_cooldowns',
         'combat_buffs',
+        'pet',
         'combat_started_at',
         'last_online',
         'claimed_offline_at',
@@ -81,6 +83,7 @@ class GameCharacter extends Model
             'combat_skills_used' => 'array',
             'combat_skill_cooldowns' => 'array',
             'combat_buffs' => 'array',
+            'pet' => 'array',
             'combat_monsters' => 'array',
             'combat_monsters_refreshed_at' => 'datetime',
             'combat_started_at' => 'datetime',

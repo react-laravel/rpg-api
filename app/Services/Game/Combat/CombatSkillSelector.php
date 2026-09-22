@@ -145,7 +145,17 @@ class CombatSkillSelector
             );
         }
 
-        $selectedSkill = $this->preferIncomingControlSkill($availableSkills, $aliveMonsters)
+        $pet = is_array($character->pet ?? null) ? $character->pet : null;
+        $petDown = $pet === null || (int) ($pet['hp'] ?? 0) <= 0;
+        if (! $petDown) {
+            $availableSkills = array_values(array_filter(
+                $availableSkills,
+                fn (array $skill): bool => ($skill['skill']->effect_key ?? '') !== 'charm-light'
+            ));
+        }
+
+        $selectedSkill = ($petDown ? $this->preferSummonSkill($availableSkills) : null)
+            ?? $this->preferIncomingControlSkill($availableSkills, $aliveMonsters)
             ?? $this->selectOptimalSkill(
                 $availableSkills,
                 $aliveMonsterCount,
@@ -222,7 +232,8 @@ class CombatSkillSelector
 
         $shieldAmount = (int) ($mergedEffects['shield_amount'] ?? 0);
         $shieldDuration = (int) ($mergedEffects['duration'] ?? $mergedEffects['shield_duration'] ?? 0);
-        $isDefensive = $shieldAmount > 0 && $damage <= 0;
+        $isSummon = ($skill->effect_key ?? '') === 'charm-light' || ! empty($mergedEffects['summon_familiar']);
+        $isDefensive = ($shieldAmount > 0 && $damage <= 0) || $isSummon;
 
         $castEffects = [
             'crit_bonus' => (float) ($mergedEffects['crit_bonus'] ?? 0),
@@ -356,6 +367,22 @@ class CombatSkillSelector
         });
 
         return $pool[0];
+    }
+
+    /**
+     * 宝宝倒下时先召它，不跟输出技能比伤害。
+     *
+     * @param  array<int, array<string, mixed>>  $availableSkills
+     */
+    public function preferSummonSkill(array $availableSkills): ?array
+    {
+        foreach ($availableSkills as $skill) {
+            if (($skill['skill']->effect_key ?? '') === 'charm-light') {
+                return $skill;
+            }
+        }
+
+        return null;
     }
 
     /**

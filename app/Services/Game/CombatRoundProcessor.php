@@ -7,8 +7,10 @@ use App\Services\Game\Combat\CombatDamageCalculator;
 use App\Services\Game\Combat\CombatEffectApplier;
 use App\Services\Game\Combat\CombatRewardCalculator;
 use App\Services\Game\Combat\CombatSkillSelector;
+use App\Services\Game\Combat\FamiliarCombat;
 use App\Services\Game\DTOs\DamageContext;
 use App\Services\Game\DTOs\RoundDetailsContext;
+use App\Support\Game\Familiar;
 use App\Support\Game\RpgAssetIconNormalizer;
 
 /**
@@ -20,7 +22,8 @@ class CombatRoundProcessor
         private CombatSkillSelector $skillSelector = new CombatSkillSelector,
         private CombatDamageCalculator $damageCalculator = new CombatDamageCalculator,
         private CombatRewardCalculator $rewardCalculator = new CombatRewardCalculator,
-        private CombatEffectApplier $effectApplier = new CombatEffectApplier
+        private CombatEffectApplier $effectApplier = new CombatEffectApplier,
+        private FamiliarCombat $familiarCombat = new FamiliarCombat
     ) {}
 
     /**
@@ -167,6 +170,10 @@ class CombatRoundProcessor
             }
         }
 
+        $pet = $this->advanceFamiliar($character, $skillsUsedThisRound, $monstersUpdated, $hpAtRoundStart);
+        $monstersUpdated = $pet['monsters'];
+        $totalDamageDealt += $pet['damage'];
+
         $slotsWhereMonsterDiedThisRound = [];
         foreach ($monstersUpdated as $idx => $m) {
             if (! is_array($m)) {
@@ -178,7 +185,16 @@ class CombatRoundProcessor
             }
         }
 
-        $incoming = $this->effectApplier->calculateMonsterCounterDamage($monstersUpdated, $charDefense);
+        $counter = $this->familiarCombat->applyCounterstrikes(
+            $monstersUpdated,
+            $charDefense,
+            $pet['bonuses']['has_charm'] ? $pet['pet'] : null
+        );
+        $petState = $counter['pet'];
+        if ($pet['bonuses']['has_charm']) {
+            $character->pet = $petState;
+        }
+        $incoming = $counter['player'];
         $reflected = 0;
         $manaRestored = 0;
         $shieldAbsorbed = 0;
@@ -260,7 +276,67 @@ class CombatRoundProcessor
             'copper_gained' => $totalCopper,
             'round_details' => $roundDetails,
             'shield' => $this->effectApplier->summarizeShield($buffs, $shieldAbsorbed, $shieldBroke, $shieldMaxHp),
+            'pet' => $character->pet,
         ];
+    }
+
+    /**
+     * 学会诱惑之光后，宝宝跟着打架。召唤只在它倒下时把血补满，击杀经验记在它自己身上。
+     *
+     * @param  array<int, array<string, mixed>>  $skillsUsedThisRound
+     * @param  array<int, array<string, mixed>|null>  $monstersUpdated
+     * @param  array<int, int>  $hpAtRoundStart
+     * @return array{monsters: array<int, array<string, mixed>|null>, damage: int, pet: array<string, mixed>|null, bonuses: array{has_charm: bool, min_level: int, cap: int, attack_bonus: float, hp_bonus: float}}
+     */
+    private function advanceFamiliar(GameCharacter $character, array $skillsUsedThisRound, array $monstersUpdated, array $hpAtRoundStart): array
+    {
+        $bonuses = Familiar::bonusesFromSkills($character->skills()->with('skill')->get());
+        $empty = ['monsters' => $monstersUpdated, 'damage' => 0, 'pet' => is_array($character->pet) ? $character->pet : null, 'bonuses' => $bonuses];
+        if (! $bonuses['has_charm']) {
+            return $empty;
+        }
+
+        $pet = is_array($character->pet) ? $character->pet : null;
+        $castCharm = ($skillsUsedThisRound[0]['effect_key'] ?? '') === 'charm-light';
+        if ($castCharm || ($pet !== null && (int) ($pet['hp'] ?? 0) > 0)) {
+            $pet = Familiar::summon(
+                $pet,
+                (int) $character->level,
+                $bonuses['min_level'],
+                $bonuses['cap'],
+                $bonuses['attack_bonus'],
+                $bonuses['hp_bonus']
+            );
+        }
+        if ($pet === null || (int) ($pet['hp'] ?? 0) <= 0) {
+            $empty['pet'] = $pet;
+
+            return $empty;
+        }
+
+        $before = $monstersUpdated;
+        [$monstersUpdated, $dealt] = $this->familiarCombat->attack($monstersUpdated, $pet);
+        if ($dealt > 0) {
+            $xp = 0;
+            foreach ($monstersUpdated as $idx => $monster) {
+                if (! is_array($monster)) {
+                    continue;
+                }
+                if (($hpAtRoundStart[$idx] ?? 0) > 0 && (int) ($monster['hp'] ?? 0) <= 0 && (int) ($before[$idx]['hp'] ?? 0) > 0) {
+                    $xp += max(1, (int) ($monster['experience'] ?? 1));
+                }
+            }
+            $pet = Familiar::grantXp(
+                $pet,
+                $xp,
+                (int) $character->level,
+                $bonuses['cap'],
+                $bonuses['attack_bonus'],
+                $bonuses['hp_bonus']
+            );
+        }
+
+        return ['monsters' => $monstersUpdated, 'damage' => $dealt, 'pet' => $pet, 'bonuses' => $bonuses];
     }
 
     /**

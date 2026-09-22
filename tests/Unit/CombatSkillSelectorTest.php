@@ -192,6 +192,18 @@ class CombatSkillSelectorTest extends TestCase
         $this->assertFalse($selected['is_defensive']);
     }
 
+    public function test_charm_light_is_chosen_when_the_pet_is_down(): void
+    {
+        $selector = new CombatSkillSelector;
+        $selected = $selector->preferSummonSkill([
+            $this->skillChoice('fireball', 16),
+            $this->skillChoice('charm-light', 0),
+        ]);
+
+        $this->assertSame(0, $selected['damage']);
+        $this->assertSame('charm-light', $selected['skill']->effect_key);
+    }
+
     public function test_ice_arrow_is_cast_when_a_monster_can_still_hit(): void
     {
         $selector = new CombatSkillSelector;
