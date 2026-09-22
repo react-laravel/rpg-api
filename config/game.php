@@ -207,7 +207,8 @@ return [
     | - 攻击 = strength × attack.multiplier。
     | - 普攻命中 = max(0, 攻击 − 防御×defense_reduction)。
     | - 技能命中 = max(0, 攻击 × 技能倍率 − 防御×defense_reduction)。技能 base_damage 为百分数，160 = 160%。
-    | - 减速：该怪反击伤害 ×0.5；冻结：该怪本拍不反击。
+    | - 怪物反击 = max(攻击×5%, 攻击−防御×0.3)。大于 0 时四舍五入，不足 1 点记为 1。攻击为 0 不反击。
+    | - 减速：反击先减半再取整，可以变成 0。冻结：该怪本拍不反击。
     | - 防御 = 体力×vitality_multiplier + 敏捷×dexterity_multiplier。
     | - 基础暴击 = 敏捷×dexterity_multiplier，总暴击率有 cap 上限。
     |--------------------------------------------------------------------------

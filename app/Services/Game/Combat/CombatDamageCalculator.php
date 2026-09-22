@@ -212,6 +212,31 @@ class CombatDamageCalculator
     }
 
     /**
+     * 控制技能优先打还会反击、且尚未减速或冻结的怪物。
+     *
+     * @param  array<int, array<string, mixed>|null>  $monsters
+     * @return array<int, array<string, mixed>>
+     */
+    public function selectControlTargets(array $monsters, int $count): array
+    {
+        $attackable = $this->listAttackableMonsters($monsters);
+        usort($attackable, function (array $first, array $second): int {
+            $threat = $this->uncontrolledThreat($second) <=> $this->uncontrolledThreat($first);
+            if ($threat !== 0) {
+                return $threat;
+            }
+
+            return $this->compareByLowestHp($first, $second);
+        });
+
+        if ($count <= 0) {
+            return [];
+        }
+
+        return array_slice($attackable, 0, $count);
+    }
+
+    /**
      * @param  array<int, array<string, mixed>|null>  $monsters
      * @return array<int, array<string, mixed>>
      */
@@ -311,25 +336,44 @@ class CombatDamageCalculator
      */
     private function sortByLowestHp(array $monsters): array
     {
-        usort($monsters, function (array $first, array $second): int {
-            $firstHp = isset($first['hp']) && is_numeric($first['hp']) ? (int) $first['hp'] : 0;
-            $secondHp = isset($second['hp']) && is_numeric($second['hp']) ? (int) $second['hp'] : 0;
-            $hpCompare = $firstHp <=> $secondHp;
-            if ($hpCompare !== 0) {
-                return $hpCompare;
-            }
-
-            $firstPosition = isset($first['position']) && is_numeric($first['position'])
-                ? (int) $first['position']
-                : PHP_INT_MAX;
-            $secondPosition = isset($second['position']) && is_numeric($second['position'])
-                ? (int) $second['position']
-                : PHP_INT_MAX;
-
-            return $firstPosition <=> $secondPosition;
-        });
+        usort($monsters, fn (array $first, array $second): int => $this->compareByLowestHp($first, $second));
 
         return $monsters;
+    }
+
+    /**
+     * @param  array<string, mixed>  $monster
+     */
+    private function uncontrolledThreat(array $monster): int
+    {
+        if ((int) ($monster['freeze_ticks'] ?? 0) > 0 || (int) ($monster['slow_ticks'] ?? 0) > 0) {
+            return 0;
+        }
+
+        return max(0, (int) ($monster['attack'] ?? 0));
+    }
+
+    /**
+     * @param  array<string, mixed>  $first
+     * @param  array<string, mixed>  $second
+     */
+    private function compareByLowestHp(array $first, array $second): int
+    {
+        $firstHp = isset($first['hp']) && is_numeric($first['hp']) ? (int) $first['hp'] : 0;
+        $secondHp = isset($second['hp']) && is_numeric($second['hp']) ? (int) $second['hp'] : 0;
+        $hpCompare = $firstHp <=> $secondHp;
+        if ($hpCompare !== 0) {
+            return $hpCompare;
+        }
+
+        $firstPosition = isset($first['position']) && is_numeric($first['position'])
+            ? (int) $first['position']
+            : PHP_INT_MAX;
+        $secondPosition = isset($second['position']) && is_numeric($second['position'])
+            ? (int) $second['position']
+            : PHP_INT_MAX;
+
+        return $firstPosition <=> $secondPosition;
     }
 
     /**

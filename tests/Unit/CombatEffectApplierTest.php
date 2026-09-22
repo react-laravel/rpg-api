@@ -149,6 +149,27 @@ class CombatEffectApplierTest extends TestCase
         $this->assertEqualsWithDelta(0.8, $ratios[1], 0.001);
     }
 
+    public function test_ice_arrow_aims_at_the_uncontrolled_attacker(): void
+    {
+        $applier = new CombatEffectApplier;
+        $calculator = new CombatDamageCalculator;
+        $monsters = [
+            ['position' => 0, 'hp' => 4, 'attack' => 0],
+            ['position' => 1, 'hp' => 30, 'attack' => 2, 'slow_ticks' => 2],
+            ['position' => 2, 'hp' => 80, 'attack' => 2],
+        ];
+
+        [$targets] = $applier->resolveTargetsWithFalloff(
+            $monsters,
+            false,
+            ['slow_duration' => 2, 'slow_chance' => 1],
+            $calculator
+        );
+
+        $this->assertCount(1, $targets);
+        $this->assertSame(2, $targets[0]['position']);
+    }
+
     public function test_aoe_single_target_ratio_still_hits_every_monster(): void
     {
         $applier = new CombatEffectApplier;

@@ -268,12 +268,17 @@ class CombatEffectApplier
             if ($monsterAttack <= 0) {
                 continue;
             }
-            $monsterDefenseReduction = config('game.combat.monster_defense_reduction', 0.3);
-            $monsterDamage = max($monsterAttack * (float) config('game.combat.minimum_monster_damage_ratio', 0.05), $monsterAttack - $charDefense * $monsterDefenseReduction);
-            if ((int) ($m['slow_ticks'] ?? 0) > 0) {
+            $monsterDefenseReduction = (float) config('game.combat.monster_defense_reduction', 0.3);
+            $minimumRatio = (float) config('game.combat.minimum_monster_damage_ratio', 0.05);
+            $monsterDamage = max(
+                $monsterAttack * $minimumRatio,
+                $monsterAttack - $charDefense * $monsterDefenseReduction
+            );
+            $slowed = (int) ($m['slow_ticks'] ?? 0) > 0;
+            if ($slowed) {
                 $monsterDamage *= self::SLOW_COUNTER_MULTIPLIER;
             }
-            $total += (int) $monsterDamage;
+            $total += $this->finalizeMonsterHit($monsterDamage, $slowed);
         }
 
         return $total;
@@ -295,8 +300,14 @@ class CombatEffectApplier
         $pierceFalloff = (float) ($castEffects['pierce_falloff'] ?? 0.2);
         $bounceRatio = (float) ($castEffects['bounce_ratio'] ?? 0.7);
 
+        $controlShot = (int) ($castEffects['slow_duration'] ?? 0) > 0
+            || (int) ($castEffects['freeze_duration'] ?? 0) > 0
+            || (int) ($castEffects['ground_slow_duration'] ?? 0) > 0;
+
         if ($pierceCount > 0) {
-            $targets = $damageCalculator->selectLowestHpTargets($allMonsters, $pierceCount);
+            $targets = $controlShot
+                ? $damageCalculator->selectControlTargets($allMonsters, $pierceCount)
+                : $damageCalculator->selectLowestHpTargets($allMonsters, $pierceCount);
             $ratios = [];
             foreach (array_values($targets) as $i => $target) {
                 $ratios[] = max(0.1, 1 - $pierceFalloff * $i);
@@ -313,6 +324,12 @@ class CombatEffectApplier
             }
 
             return [$targets, $ratios];
+        }
+
+        if ($controlShot && ! $isAoe && $bounceCount <= 0) {
+            $targets = $damageCalculator->selectControlTargets($allMonsters, 1);
+
+            return [$targets, $targets === [] ? [] : [1.0]];
         }
 
         $targets = $damageCalculator->selectRoundTargets($allMonsters, $isAoe);
@@ -334,5 +351,23 @@ class CombatEffectApplier
     public function burnDamageRatio(): float
     {
         return self::BURN_DAMAGE_RATIO;
+    }
+
+    /**
+     * 大于 0 的反击至少 1 点，避免攻击 1～2 被防御乘系数后取整成 0。
+     * 减速已在调用前减半，减半后不足 1 点则为 0。
+     */
+    private function finalizeMonsterHit(float $raw, bool $slowed): int
+    {
+        if ($raw <= 0) {
+            return 0;
+        }
+
+        $dealt = (int) round($raw);
+        if ($dealt >= 1) {
+            return $dealt;
+        }
+
+        return $slowed ? 0 : 1;
     }
 }

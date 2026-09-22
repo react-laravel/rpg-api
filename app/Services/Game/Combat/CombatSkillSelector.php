@@ -145,13 +145,14 @@ class CombatSkillSelector
             );
         }
 
-        $selectedSkill = $this->selectOptimalSkill(
-            $availableSkills,
-            $aliveMonsterCount,
-            $lowHpMonsterCount,
-            $totalMonsterHp,
-            $charAttack
-        );
+        $selectedSkill = $this->preferIncomingControlSkill($availableSkills, $aliveMonsters)
+            ?? $this->selectOptimalSkill(
+                $availableSkills,
+                $aliveMonsterCount,
+                $lowHpMonsterCount,
+                $totalMonsterHp,
+                $charAttack
+            );
 
         if ($selectedSkill === null) {
             return $this->buildNoSkillRoundResult(
@@ -355,6 +356,43 @@ class CombatSkillSelector
         });
 
         return $pool[0];
+    }
+
+    /**
+     * 冰箭不跟小火球比伤害：场上还有会反击、且没被减速或冻结的怪物时直接放。
+     *
+     * @param  array<int, array<string, mixed>>  $availableSkills
+     * @param  array<int, array<string, mixed>>  $aliveMonsters
+     */
+    public function preferIncomingControlSkill(array $availableSkills, array $aliveMonsters): ?array
+    {
+        $threat = false;
+        foreach ($aliveMonsters as $monster) {
+            if (! is_array($monster) || (int) ($monster['hp'] ?? 0) <= 0) {
+                continue;
+            }
+            if ((int) ($monster['attack'] ?? 0) <= 0) {
+                continue;
+            }
+            if ((int) ($monster['freeze_ticks'] ?? 0) > 0 || (int) ($monster['slow_ticks'] ?? 0) > 0) {
+                continue;
+            }
+            $threat = true;
+            break;
+        }
+
+        if (! $threat) {
+            return null;
+        }
+
+        foreach ($availableSkills as $skill) {
+            $effectKey = $skill['skill']->effect_key ?? '';
+            if ($effectKey === 'ice-arrow') {
+                return $skill;
+            }
+        }
+
+        return null;
     }
 
     /**

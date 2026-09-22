@@ -191,4 +191,46 @@ class CombatSkillSelectorTest extends TestCase
         $this->assertSame(16, $selected['damage']);
         $this->assertFalse($selected['is_defensive']);
     }
+
+    public function test_ice_arrow_is_cast_when_a_monster_can_still_hit(): void
+    {
+        $selector = new CombatSkillSelector;
+        $ice = $this->skillChoice('ice-arrow', 13);
+        $fire = $this->skillChoice('fireball', 16);
+
+        $selected = $selector->preferIncomingControlSkill(
+            [$fire, $ice],
+            [
+                ['hp' => 4, 'attack' => 0],
+                ['hp' => 20, 'attack' => 2],
+            ]
+        );
+
+        $this->assertSame(13, $selected['damage']);
+    }
+
+    public function test_ice_arrow_waits_when_every_attacker_is_already_controlled(): void
+    {
+        $selector = new CombatSkillSelector;
+
+        $this->assertNull($selector->preferIncomingControlSkill(
+            [$this->skillChoice('fireball', 16), $this->skillChoice('ice-arrow', 13)],
+            [
+                ['hp' => 20, 'attack' => 2, 'slow_ticks' => 1],
+                ['hp' => 20, 'attack' => 4, 'freeze_ticks' => 1],
+                ['hp' => 8, 'attack' => 0],
+            ]
+        ));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function skillChoice(string $effectKey, int $damage): array
+    {
+        return [
+            'damage' => $damage,
+            'skill' => (object) ['effect_key' => $effectKey],
+        ];
+    }
 }

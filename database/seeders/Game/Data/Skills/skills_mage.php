@@ -22,7 +22,7 @@ return SkillTreeBuilder::merge(
         'effects' => ['damage_bonus' => 0.4],
     ]),
     SkillTreeBuilder::line('mage', 'basic', 'mage_ice_arrow', 'ice-arrow', '冰箭', [
-        'description' => '单体控制箭。造成攻击力 130% 伤害，并减速 2 次推进：该怪反击伤害减半',
+        'description' => '单体控制箭。造成攻击力 130% 伤害。会反击、且还没被减速或冻结的怪物优先吃到这一发，反击减半，持续 2 次推进',
         'base_damage' => 130,
         'mana_cost' => 6,
         'cooldown' => 2,

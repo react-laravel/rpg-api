@@ -20,11 +20,14 @@ class CombatRewardBalanceTest extends TestCase
         $this->assertSame(574, $copper);
     }
 
-    public function test_defense_floor_does_not_damage_training_players_or_frozen_targets(): void
+    public function test_small_attacks_chip_low_defense_and_slow_can_zero_that_chip(): void
     {
         $effects = new CombatEffectApplier;
-        $this->assertSame(0, $effects->calculateMonsterCounterDamage([['hp' => 10, 'attack' => 0]], 0));
-        $this->assertSame(0, $effects->calculateMonsterCounterDamage([['hp' => 10, 'attack' => 1]], 100));
+        $this->assertSame(0, $effects->calculateMonsterCounterDamage([['hp' => 10, 'attack' => 0]], 5));
+        $this->assertSame(1, $effects->calculateMonsterCounterDamage([['hp' => 10, 'attack' => 1]], 5));
+        $this->assertSame(1, $effects->calculateMonsterCounterDamage([['hp' => 10, 'attack' => 2]], 5));
+        $this->assertSame(0, $effects->calculateMonsterCounterDamage([['hp' => 10, 'attack' => 2, 'slow_ticks' => 2]], 5));
+        $this->assertSame(1, $effects->calculateMonsterCounterDamage([['hp' => 10, 'attack' => 1]], 100));
         $this->assertSame(1, $effects->calculateMonsterCounterDamage([['hp' => 10, 'attack' => 24]], 1000));
         $this->assertSame(0, $effects->calculateMonsterCounterDamage([['hp' => 10, 'attack' => 24, 'freeze_ticks' => 1]], 1000));
     }
