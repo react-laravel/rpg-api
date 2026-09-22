@@ -7,9 +7,9 @@ namespace App\Support\Game;
  *
  * 每张地图 3 只怪（野猪 / 鹿 / 兔子原型），第 N 张地图为第 N 层：
  *   HP   = round((hp_base + (layer-1) * hp_growth) * hp_type_multiplier)
- *   攻击 = (layer-1) * attack_growth
- *   防御 = defense_base + (layer-1) * defense_growth
- *   经验 = round(layer^2 * exp_type_multiplier)
+ *   攻击 = round((layer-1) * attack_growth * attack_scale * attack_type_multiplier)
+ *   防御 = round((defense_base + (layer-1) * defense_growth) * defense_scale * defense_type_multiplier)
+ *   经验 = max(1, round(layer^2 * exp_type_multiplier * experience_scale))
  *
  * 类型：新手营地全普通；其余地图槽 2 为精英；章节最后一张地图槽 2 为 Boss。
  * 槽 0/1 始终普通，相邻图常规刷新只走线性层数，不会被精英/Boss 倍率变成血墙。
@@ -55,16 +55,22 @@ final class MonsterProgression
 
         $hpMultiplier = (float) config("game.monster_progression.hp_type_multiplier.{$type}", 1.0);
         $expMultiplier = (float) config("game.monster_progression.exp_type_multiplier.{$type}", 1.0);
-        $hpArchetype = $type === 'boss' ? $archetypes[0] : $archetype;
-        $baseHp = (int) $hpArchetype['hp_base'] + ($layer - 1) * (int) $hpArchetype['hp_growth'];
+        $statArchetype = $type !== 'normal' ? $archetypes[0] : $archetype;
+        $baseHp = (int) $statArchetype['hp_base'] + ($layer - 1) * (int) $statArchetype['hp_growth'];
+        $attack = ($layer - 1) * (int) $statArchetype['attack_growth']
+            * (float) config('game.monster_progression.attack_scale', 1.0)
+            * (float) config("game.monster_progression.attack_type_multiplier.{$type}", 1.0);
+        $defense = ((int) $statArchetype['defense_base'] + ($layer - 1) * (int) $statArchetype['defense_growth'])
+            * (float) config('game.monster_progression.defense_scale', 1.0)
+            * (float) config("game.monster_progression.defense_type_multiplier.{$type}", 1.0);
 
         return array_merge($monster, [
             'type' => $type,
             'level' => $layer,
             'hp_base' => max(1, (int) round($baseHp * $hpMultiplier)),
-            'defense_base' => (int) $archetype['defense_base'] + ($layer - 1) * (int) $archetype['defense_growth'],
-            'attack_base' => ($layer - 1) * (int) $archetype['attack_growth'],
-            'experience_base' => max(1, (int) round(($layer ** 2) * $expMultiplier)),
+            'defense_base' => max(0, (int) round($defense)),
+            'attack_base' => max(0, (int) round($attack)),
+            'experience_base' => max(1, (int) round(($layer ** 2) * $expMultiplier * (float) config('game.monster_progression.experience_scale', 1.0))),
         ]);
     }
 

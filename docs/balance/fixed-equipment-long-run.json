@@ -1,0 +1,103 @@
+{
+    "rounds_per_map": 3000,
+    "round_seconds": 3,
+    "experience_scale": 0.1,
+    "profiles": [
+        {
+            "level": 15,
+            "stats": {
+                "attack": 18,
+                "defense": 12,
+                "max_hp": 46,
+                "max_mana": 46,
+                "crit_rate": 0.028,
+                "crit_damage": 1.58,
+                "hp_regen": 2,
+                "mana_regen": 4
+            },
+            "best": {
+                "map": 10,
+                "diedAt": null,
+                "xpPerHour": 5228,
+                "killsPerRound": 0.426,
+                "damagePerRound": 1.028,
+                "hpEnd": 46
+            },
+            "safeMaps": [
+                10
+            ]
+        },
+        {
+            "level": 65,
+            "stats": {
+                "attack": 63,
+                "defense": 32,
+                "max_hp": 112,
+                "max_mana": 105,
+                "crit_rate": 0.038,
+                "crit_damage": 1.6,
+                "hp_regen": 6,
+                "mana_regen": 9
+            },
+            "best": {
+                "map": 28,
+                "diedAt": null,
+                "xpPerHour": 79464,
+                "killsPerRound": 0.825,
+                "damagePerRound": 3.784,
+                "hpEnd": 112
+            },
+            "safeMaps": [
+                28
+            ]
+        },
+        {
+            "level": 100,
+            "stats": {
+                "attack": 91,
+                "defense": 46,
+                "max_hp": 156,
+                "max_mana": 139,
+                "crit_rate": 0.008,
+                "crit_damage": 1.62,
+                "hp_regen": 8,
+                "mana_regen": 13
+            },
+            "best": {
+                "map": 41,
+                "diedAt": null,
+                "xpPerHour": 202070,
+                "killsPerRound": 0.927,
+                "damagePerRound": 5.137,
+                "hpEnd": 144
+            },
+            "safeMaps": [
+                41
+            ]
+        },
+        {
+            "level": 199,
+            "stats": {
+                "attack": 147,
+                "defense": 56,
+                "max_hp": 246,
+                "max_mana": 189,
+                "crit_rate": 0.008,
+                "crit_damage": 1.62,
+                "hp_regen": 16,
+                "mana_regen": 23
+            },
+            "best": {
+                "map": 41,
+                "diedAt": null,
+                "xpPerHour": 297494,
+                "killsPerRound": 1.368,
+                "damagePerRound": 1.736,
+                "hpEnd": 246
+            },
+            "safeMaps": [
+                41
+            ]
+        }
+    ]
+}

@@ -1,0 +1,53 @@
+{
+  "round_seconds": 3,
+  "observed_round_seconds": 3.101,
+  "experience_cost": "50 * level^2",
+  "normal_difficulty": true,
+  "no_gems": true,
+  "milestones": {
+    "linear": {
+      "25": {
+        "ideal_days": 1.63,
+        "observed_cadence_days": 1.68
+      },
+      "50": {
+        "ideal_days": 4.35,
+        "observed_cadence_days": 4.5
+      },
+      "100": {
+        "ideal_days": 9.51,
+        "observed_cadence_days": 9.83
+      },
+      "150": {
+        "ideal_days": 16.38,
+        "observed_cadence_days": 16.93
+      },
+      "200": {
+        "ideal_days": 27.32,
+        "observed_cadence_days": 28.24
+      }
+    },
+    "previous_checkpoint": {
+      "25": {
+        "ideal_days": 2.55,
+        "observed_cadence_days": 2.64
+      },
+      "50": {
+        "ideal_days": 7.0,
+        "observed_cadence_days": 7.24
+      },
+      "100": {
+        "ideal_days": 14.56,
+        "observed_cadence_days": 15.06
+      },
+      "150": {
+        "ideal_days": 22.06,
+        "observed_cadence_days": 22.8
+      },
+      "200": {
+        "ideal_days": 33.18,
+        "observed_cadence_days": 34.3
+      }
+    }
+  }
+}

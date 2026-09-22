@@ -1,0 +1,21 @@
+{
+  "definitions": 104,
+  "items": 444,
+  "characters": 2,
+  "postgres_version": "PostgreSQL 14.21 (Homebrew) on aarch64-apple-darwin25.2.0, compiled by Apple clang version 17.0.0 (clang-1700.6.3.2), 64-bit",
+  "gear_items": 444,
+  "gem_and_potion_items": 11,
+  "socketed_gems": 14,
+  "preserved_equipment_rows": 112,
+  "backup_exact": true,
+  "backup_permissions": "0600",
+  "item_ids_preserved": true,
+  "gem_tables_preserved": true,
+  "character_progress_preserved": true,
+  "repeatable": true,
+  "source": "Read-only production snapshot; replayed on isolated local PostgreSQL. No production changes during rehearsal.",
+  "tests": {
+    "passed": 62,
+    "assertions": 2145
+  }
+}

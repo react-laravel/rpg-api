@@ -47,9 +47,9 @@ class SyncMonsterProgressionCommandTest extends TestCase
         $this->assertSame($wolf->id, $wolf->refresh()->id);
         $this->assertSame('normal', $alpha->type);
         $this->assertSame(15, $alpha->hp_base);
-        $this->assertSame(4, $alpha->attack_base);
-        $this->assertSame(3, $alpha->defense_base);
-        $this->assertSame(9, $alpha->experience_base);
+        $this->assertSame(1, $alpha->attack_base);
+        $this->assertSame(1, $alpha->defense_base);
+        $this->assertSame(1, $alpha->experience_base);
     }
 
     public function test_dry_run_does_not_write(): void

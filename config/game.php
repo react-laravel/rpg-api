@@ -114,13 +114,19 @@ return [
     | 怪物属性递进（按地图层，3 只怪一层）
     |--------------------------------------------------------------------------
     | HP   = round((hp_base + (layer-1) * hp_growth) * hp_type_multiplier[type])
-    | 攻击 = (layer-1) * attack_growth          // 第 1 层（新手营地）攻击为 0
-    | 防御 = defense_base + (layer-1) * defense_growth
-    | 经验 = round(layer^2 * exp_type_multiplier[type])
-    | 类型：新手营地全普通；其余地图槽 2=精英；章节最后一张槽 2=Boss（Boss 生命按坦克原型计算）。
+    | 攻击 = round((layer-1) * attack_growth * attack_scale * attack_type_multiplier[type])
+    | 防御 = round((defense_base + (layer-1) * defense_growth) * defense_scale * defense_type_multiplier[type])
+    | 经验 = max(1, round(layer^2 * exp_type_multiplier[type] * experience_scale))
+    | 类型：新手营地全普通；其余地图槽 2=精英；章节最后一张槽 2=Boss（精英/Boss 三项属性均按坦克原型计算）。
     | 槽 0/1 始终普通，避免精英/Boss 倍率让相邻图变成血墙。
     */
     'monster_progression' => [
+        // Combat values use the same small-number scale as fixed equipment.
+        'attack_scale' => 0.2,
+        'defense_scale' => 0.35,
+        'experience_scale' => 0.1,
+        'attack_type_multiplier' => ['normal' => 1.0, 'elite' => 1.25, 'boss' => 1.5],
+        'defense_type_multiplier' => ['normal' => 1.0, 'elite' => 1.1, 'boss' => 1.2],
         'archetypes' => [
             [
                 'key' => 'boar',
@@ -152,8 +158,8 @@ return [
         ],
         'hp_type_multiplier' => [
             'normal' => 1.0,
-            'elite' => 1.25,
-            'boss' => 2.0,
+            'elite' => 1.5,
+            'boss' => 2.5,
         ],
         'exp_type_multiplier' => [
             'normal' => 1.0,
@@ -233,9 +239,10 @@ return [
         'defense_reduction' => 0.5,
         'aoe_damage_multiplier' => 0.7,
         'monster_defense_reduction' => 0.3,
+        'minimum_monster_damage_ratio' => 0.05,
         // 每次战斗推进后的资源恢复：HP = 体力 × 系数，MP = 能量 × 系数
-        'hp_regen_per_vitality' => 1,
-        'mp_regen_per_energy' => 1,
+        'hp_regen_per_vitality' => 0.25,
+        'mp_regen_per_energy' => 0.5,
         // 刷怪类型概率：普通 95%，剩余 5% 在地图已有的精英/Boss 类型间均分
         'monster_spawn' => [
             'normal_chance' => 95,
@@ -296,7 +303,7 @@ return [
         // 最大离线时间(秒)，默认 24 小时
         'max_seconds' => 86400,
         // 每级每秒经验值
-        'experience_per_level' => 0.2,
+        'experience_per_level' => 0.02,
         // 每级每秒铜币系数
         'copper_per_level' => 0.2,
     ],

@@ -265,11 +265,11 @@ class CombatEffectApplier
             }
 
             $monsterAttack = (int) ($m['attack'] ?? 0);
-            $monsterDefenseReduction = config('game.combat.monster_defense_reduction', 0.3);
-            $monsterDamage = $monsterAttack - $charDefense * $monsterDefenseReduction;
-            if ($monsterDamage <= 0) {
+            if ($monsterAttack <= 0) {
                 continue;
             }
+            $monsterDefenseReduction = config('game.combat.monster_defense_reduction', 0.3);
+            $monsterDamage = max($monsterAttack * (float) config('game.combat.minimum_monster_damage_ratio', 0.05), $monsterAttack - $charDefense * $monsterDefenseReduction);
             if ((int) ($m['slow_ticks'] ?? 0) > 0) {
                 $monsterDamage *= self::SLOW_COUNTER_MULTIPLIER;
             }

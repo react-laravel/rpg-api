@@ -43,14 +43,14 @@ class MonsterProgressionTest extends TestCase
 
         $this->assertSame('normal', $wolf['type']);
         $this->assertSame(6, $wolf['hp_base']);
-        $this->assertSame(3, $wolf['attack_base']);
+        $this->assertSame(1, $wolf['attack_base']);
 
         $this->assertSame('normal', $alpha['type']);
         $this->assertSame(15, $alpha['hp_base']);
-        $this->assertSame(4, $alpha['attack_base']);
+        $this->assertSame(1, $alpha['attack_base']);
 
         $this->assertSame('elite', $boarKing['type']);
-        $this->assertSame(6, $boarKing['hp_base']);
+        $this->assertSame(23, $boarKing['hp_base']);
     }
 
     public function test_every_map_keeps_a_normal_monster_and_normal_hp_is_monotonic(): void
@@ -103,7 +103,7 @@ class MonsterProgressionTest extends TestCase
         $this->assertSame('normal', $tank['type']);
         $this->assertSame(27, $tank['hp_base']);
         $this->assertSame('boss', $boss['type']);
-        $this->assertSame(54, $boss['hp_base']);
+        $this->assertSame(68, $boss['hp_base']);
     }
 
     public function test_seeded_monsters_follow_the_same_formula(): void
@@ -117,6 +117,6 @@ class MonsterProgressionTest extends TestCase
         $this->assertSame('土灵', $seeded[6]['name']);
         $this->assertSame(15, $seeded[6]['hp_base']);
         $this->assertSame('normal', $seeded[6]['type']);
-        $this->assertSame(9, $seeded[6]['experience_base']);
+        $this->assertSame(1, $seeded[6]['experience_base']);
     }
 }

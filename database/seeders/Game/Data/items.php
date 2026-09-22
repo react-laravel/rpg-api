@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\Game\FixedEquipmentStats;
+
 $dir = __DIR__.'/items';
 
 $items = array_merge(
@@ -16,6 +18,7 @@ $items = array_merge(
 );
 
 $presentation = require __DIR__.'/item-presentation.php';
+$items = FixedEquipmentStats::apply($items);
 
 return array_map(
     static function (array $item) use ($presentation): array {

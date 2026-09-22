@@ -1,0 +1,1020 @@
+[
+    {
+        "id": 14,
+        "name": "学徒法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 40,
+        "name": "布帽",
+        "type": "helmet",
+        "base_stats": {
+            "defense": 1,
+            "max_hp": 2,
+            "max_mana": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 53,
+        "name": "布衣",
+        "type": "armor",
+        "base_stats": {
+            "defense": 1,
+            "max_hp": 3,
+            "max_mana": 2
+        },
+        "required_level": 1
+    },
+    {
+        "id": 67,
+        "name": "布手套",
+        "type": "gloves",
+        "base_stats": {
+            "defense": 1,
+            "max_mana": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 80,
+        "name": "布鞋",
+        "type": "boots",
+        "base_stats": {
+            "defense": 1,
+            "max_hp": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 93,
+        "name": "布腰带",
+        "type": "belt",
+        "base_stats": {
+            "max_hp": 2,
+            "max_mana": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 106,
+        "name": "铜戒指",
+        "type": "ring",
+        "base_stats": {
+            "attack": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 123,
+        "name": "木制护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 1001,
+        "name": "磐石法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 1002,
+        "name": "磐石兜帽",
+        "type": "helmet",
+        "base_stats": {
+            "defense": 1,
+            "max_hp": 2,
+            "max_mana": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 1003,
+        "name": "磐石法袍",
+        "type": "armor",
+        "base_stats": {
+            "defense": 1,
+            "max_hp": 3,
+            "max_mana": 2
+        },
+        "required_level": 1
+    },
+    {
+        "id": 1004,
+        "name": "磐石护手",
+        "type": "gloves",
+        "base_stats": {
+            "defense": 1,
+            "max_mana": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 1005,
+        "name": "磐石长靴",
+        "type": "boots",
+        "base_stats": {
+            "defense": 1,
+            "max_hp": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 1006,
+        "name": "磐石腰带",
+        "type": "belt",
+        "base_stats": {
+            "max_hp": 2,
+            "max_mana": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 1007,
+        "name": "磐石指环",
+        "type": "ring",
+        "base_stats": {
+            "attack": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 1008,
+        "name": "磐石护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 1
+        },
+        "required_level": 1
+    },
+    {
+        "id": 15,
+        "name": "橡木法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 2
+        },
+        "required_level": 5
+    },
+    {
+        "id": 107,
+        "name": "银戒指",
+        "type": "ring",
+        "base_stats": {
+            "attack": 1,
+            "crit_rate": 0.01
+        },
+        "required_level": 5
+    },
+    {
+        "id": 124,
+        "name": "骨制护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 1
+        },
+        "required_level": 5
+    },
+    {
+        "id": 16,
+        "name": "水晶法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 3
+        },
+        "required_level": 10
+    },
+    {
+        "id": 108,
+        "name": "金戒指",
+        "type": "ring",
+        "base_stats": {
+            "attack": 2,
+            "crit_rate": 0.01
+        },
+        "required_level": 10
+    },
+    {
+        "id": 125,
+        "name": "水晶护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 2
+        },
+        "required_level": 10
+    },
+    {
+        "id": 17,
+        "name": "月华法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 4
+        },
+        "required_level": 15
+    },
+    {
+        "id": 109,
+        "name": "红宝石戒指",
+        "type": "ring",
+        "base_stats": {
+            "attack": 2,
+            "crit_damage": 0.04
+        },
+        "required_level": 15
+    },
+    {
+        "id": 110,
+        "name": "蓝宝石戒指",
+        "type": "ring",
+        "base_stats": {
+            "attack": 2
+        },
+        "required_level": 15
+    },
+    {
+        "id": 111,
+        "name": "翡翠戒指",
+        "type": "ring",
+        "base_stats": {
+            "attack": 2
+        },
+        "required_level": 15
+    },
+    {
+        "id": 126,
+        "name": "狮心护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 2
+        },
+        "required_level": 15
+    },
+    {
+        "id": 127,
+        "name": "猫眼护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 2,
+            "crit_rate": 0.02,
+            "crit_damage": 0.04
+        },
+        "required_level": 15
+    },
+    {
+        "id": 1009,
+        "name": "青藤法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 4
+        },
+        "required_level": 15
+    },
+    {
+        "id": 1010,
+        "name": "青藤兜帽",
+        "type": "helmet",
+        "base_stats": {
+            "defense": 2,
+            "max_hp": 4,
+            "max_mana": 2
+        },
+        "required_level": 15
+    },
+    {
+        "id": 1011,
+        "name": "青藤法袍",
+        "type": "armor",
+        "base_stats": {
+            "defense": 3,
+            "max_hp": 5,
+            "max_mana": 4
+        },
+        "required_level": 15
+    },
+    {
+        "id": 1012,
+        "name": "青藤护手",
+        "type": "gloves",
+        "base_stats": {
+            "defense": 2,
+            "max_mana": 2
+        },
+        "required_level": 15
+    },
+    {
+        "id": 1013,
+        "name": "青藤长靴",
+        "type": "boots",
+        "base_stats": {
+            "defense": 2,
+            "max_hp": 2
+        },
+        "required_level": 15
+    },
+    {
+        "id": 1014,
+        "name": "青藤腰带",
+        "type": "belt",
+        "base_stats": {
+            "max_hp": 4,
+            "max_mana": 2
+        },
+        "required_level": 15
+    },
+    {
+        "id": 1015,
+        "name": "青藤指环",
+        "type": "ring",
+        "base_stats": {
+            "attack": 2
+        },
+        "required_level": 15
+    },
+    {
+        "id": 1016,
+        "name": "青藤护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 2
+        },
+        "required_level": 15
+    },
+    {
+        "id": 18,
+        "name": "星辰法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 5,
+            "crit_rate": 0.02
+        },
+        "required_level": 20
+    },
+    {
+        "id": 112,
+        "name": "乌鸦之戒",
+        "type": "ring",
+        "base_stats": {
+            "attack": 3,
+            "crit_rate": 0.02,
+            "crit_damage": 0.06
+        },
+        "required_level": 20
+    },
+    {
+        "id": 128,
+        "name": "统御护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 3
+        },
+        "required_level": 20
+    },
+    {
+        "id": 19,
+        "name": "虚空法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 6
+        },
+        "required_level": 25
+    },
+    {
+        "id": 113,
+        "name": "星辉之戒",
+        "type": "ring",
+        "base_stats": {
+            "attack": 3
+        },
+        "required_level": 25
+    },
+    {
+        "id": 114,
+        "name": "矮人戒指",
+        "type": "ring",
+        "base_stats": {
+            "attack": 3
+        },
+        "required_level": 25
+    },
+    {
+        "id": 115,
+        "name": "魔法戒指",
+        "type": "ring",
+        "base_stats": {
+            "attack": 3,
+            "max_mana": 6
+        },
+        "required_level": 25
+    },
+    {
+        "id": 129,
+        "name": "地狱护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 3,
+            "crit_damage": 0.06
+        },
+        "required_level": 25
+    },
+    {
+        "id": 1017,
+        "name": "沧澜法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 6
+        },
+        "required_level": 25
+    },
+    {
+        "id": 1018,
+        "name": "沧澜兜帽",
+        "type": "helmet",
+        "base_stats": {
+            "defense": 3,
+            "max_hp": 6,
+            "max_mana": 3
+        },
+        "required_level": 25
+    },
+    {
+        "id": 1019,
+        "name": "沧澜法袍",
+        "type": "armor",
+        "base_stats": {
+            "defense": 5,
+            "max_hp": 7,
+            "max_mana": 6
+        },
+        "required_level": 25
+    },
+    {
+        "id": 1020,
+        "name": "沧澜护手",
+        "type": "gloves",
+        "base_stats": {
+            "defense": 3,
+            "max_mana": 3
+        },
+        "required_level": 25
+    },
+    {
+        "id": 1021,
+        "name": "沧澜长靴",
+        "type": "boots",
+        "base_stats": {
+            "defense": 3,
+            "max_hp": 3
+        },
+        "required_level": 25
+    },
+    {
+        "id": 1022,
+        "name": "沧澜腰带",
+        "type": "belt",
+        "base_stats": {
+            "max_hp": 6,
+            "max_mana": 3
+        },
+        "required_level": 25
+    },
+    {
+        "id": 1023,
+        "name": "沧澜指环",
+        "type": "ring",
+        "base_stats": {
+            "attack": 3
+        },
+        "required_level": 25
+    },
+    {
+        "id": 1024,
+        "name": "沧澜护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 3
+        },
+        "required_level": 25
+    },
+    {
+        "id": 130,
+        "name": "神圣护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 4
+        },
+        "required_level": 30
+    },
+    {
+        "id": 20,
+        "name": "奥术法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 7
+        },
+        "required_level": 35
+    },
+    {
+        "id": 21,
+        "name": "凤凰法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 8,
+            "crit_damage": 0.08
+        },
+        "required_level": 45
+    },
+    {
+        "id": 117,
+        "name": "天使之戒",
+        "type": "ring",
+        "base_stats": {
+            "attack": 4,
+            "crit_rate": 0.03
+        },
+        "required_level": 45
+    },
+    {
+        "id": 1025,
+        "name": "烈阳法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 8
+        },
+        "required_level": 45
+    },
+    {
+        "id": 1026,
+        "name": "烈阳兜帽",
+        "type": "helmet",
+        "base_stats": {
+            "defense": 4,
+            "max_hp": 8,
+            "max_mana": 4
+        },
+        "required_level": 45
+    },
+    {
+        "id": 1027,
+        "name": "烈阳法袍",
+        "type": "armor",
+        "base_stats": {
+            "defense": 7,
+            "max_hp": 9,
+            "max_mana": 8
+        },
+        "required_level": 45
+    },
+    {
+        "id": 1028,
+        "name": "烈阳护手",
+        "type": "gloves",
+        "base_stats": {
+            "defense": 4,
+            "max_mana": 4
+        },
+        "required_level": 45
+    },
+    {
+        "id": 1029,
+        "name": "烈阳长靴",
+        "type": "boots",
+        "base_stats": {
+            "defense": 4,
+            "max_hp": 4
+        },
+        "required_level": 45
+    },
+    {
+        "id": 1030,
+        "name": "烈阳腰带",
+        "type": "belt",
+        "base_stats": {
+            "max_hp": 8,
+            "max_mana": 4
+        },
+        "required_level": 45
+    },
+    {
+        "id": 1031,
+        "name": "烈阳指环",
+        "type": "ring",
+        "base_stats": {
+            "attack": 4
+        },
+        "required_level": 45
+    },
+    {
+        "id": 1032,
+        "name": "烈阳护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 4
+        },
+        "required_level": 45
+    },
+    {
+        "id": 132,
+        "name": "天使护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 5
+        },
+        "required_level": 50
+    },
+    {
+        "id": 22,
+        "name": "天使法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 9,
+            "crit_rate": 0.03
+        },
+        "required_level": 55
+    },
+    {
+        "id": 118,
+        "name": "辉耀之戒",
+        "type": "ring",
+        "base_stats": {
+            "attack": 4,
+            "crit_damage": 0.08
+        },
+        "required_level": 55
+    },
+    {
+        "id": 133,
+        "name": "炽天使护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 5,
+            "crit_damage": 0.1
+        },
+        "required_level": 60
+    },
+    {
+        "id": 23,
+        "name": "贤者法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 10
+        },
+        "required_level": 65
+    },
+    {
+        "id": 119,
+        "name": "永恒之戒",
+        "type": "ring",
+        "base_stats": {
+            "attack": 5,
+            "crit_rate": 0.03,
+            "crit_damage": 0.1
+        },
+        "required_level": 65
+    },
+    {
+        "id": 1033,
+        "name": "鎏金法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 10
+        },
+        "required_level": 65
+    },
+    {
+        "id": 1034,
+        "name": "鎏金兜帽",
+        "type": "helmet",
+        "base_stats": {
+            "defense": 5,
+            "max_hp": 10,
+            "max_mana": 5
+        },
+        "required_level": 65
+    },
+    {
+        "id": 1035,
+        "name": "鎏金法袍",
+        "type": "armor",
+        "base_stats": {
+            "defense": 9,
+            "max_hp": 11,
+            "max_mana": 10
+        },
+        "required_level": 65
+    },
+    {
+        "id": 1036,
+        "name": "鎏金护手",
+        "type": "gloves",
+        "base_stats": {
+            "defense": 5,
+            "max_mana": 5
+        },
+        "required_level": 65
+    },
+    {
+        "id": 1037,
+        "name": "鎏金长靴",
+        "type": "boots",
+        "base_stats": {
+            "defense": 5,
+            "max_hp": 5
+        },
+        "required_level": 65
+    },
+    {
+        "id": 1038,
+        "name": "鎏金腰带",
+        "type": "belt",
+        "base_stats": {
+            "max_hp": 10,
+            "max_mana": 5
+        },
+        "required_level": 65
+    },
+    {
+        "id": 1039,
+        "name": "鎏金指环",
+        "type": "ring",
+        "base_stats": {
+            "attack": 5
+        },
+        "required_level": 65
+    },
+    {
+        "id": 1040,
+        "name": "鎏金护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 6
+        },
+        "required_level": 65
+    },
+    {
+        "id": 134,
+        "name": "永恒护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 6
+        },
+        "required_level": 70
+    },
+    {
+        "id": 24,
+        "name": "启示权杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 11,
+            "crit_rate": 0.04
+        },
+        "required_level": 75
+    },
+    {
+        "id": 120,
+        "name": "混沌之戒",
+        "type": "ring",
+        "base_stats": {
+            "attack": 5
+        },
+        "required_level": 75
+    },
+    {
+        "id": 135,
+        "name": "混沌护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 7,
+            "crit_rate": 0.04,
+            "crit_damage": 0.12
+        },
+        "required_level": 80
+    },
+    {
+        "id": 25,
+        "name": "永恒源杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 12,
+            "crit_damage": 0.12
+        },
+        "required_level": 85
+    },
+    {
+        "id": 121,
+        "name": "创世之戒",
+        "type": "ring",
+        "base_stats": {
+            "attack": 6,
+            "crit_rate": 0.04,
+            "crit_damage": 0.12
+        },
+        "required_level": 85
+    },
+    {
+        "id": 1041,
+        "name": "流风法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 12
+        },
+        "required_level": 85
+    },
+    {
+        "id": 1042,
+        "name": "流风兜帽",
+        "type": "helmet",
+        "base_stats": {
+            "defense": 6,
+            "max_hp": 12,
+            "max_mana": 6
+        },
+        "required_level": 85
+    },
+    {
+        "id": 1043,
+        "name": "流风法袍",
+        "type": "armor",
+        "base_stats": {
+            "defense": 11,
+            "max_hp": 13,
+            "max_mana": 12
+        },
+        "required_level": 85
+    },
+    {
+        "id": 1044,
+        "name": "流风护手",
+        "type": "gloves",
+        "base_stats": {
+            "defense": 6,
+            "max_mana": 6
+        },
+        "required_level": 85
+    },
+    {
+        "id": 1045,
+        "name": "流风长靴",
+        "type": "boots",
+        "base_stats": {
+            "defense": 6,
+            "max_hp": 6
+        },
+        "required_level": 85
+    },
+    {
+        "id": 1046,
+        "name": "流风腰带",
+        "type": "belt",
+        "base_stats": {
+            "max_hp": 12,
+            "max_mana": 6
+        },
+        "required_level": 85
+    },
+    {
+        "id": 1047,
+        "name": "流风指环",
+        "type": "ring",
+        "base_stats": {
+            "attack": 6
+        },
+        "required_level": 85
+    },
+    {
+        "id": 1048,
+        "name": "流风护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 7
+        },
+        "required_level": 85
+    },
+    {
+        "id": 136,
+        "name": "创世护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 8
+        },
+        "required_level": 90
+    },
+    {
+        "id": 26,
+        "name": "混沌法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 13,
+            "crit_rate": 0.04
+        },
+        "required_level": 95
+    },
+    {
+        "id": 122,
+        "name": "神王之戒",
+        "type": "ring",
+        "base_stats": {
+            "attack": 6,
+            "crit_damage": 0.12
+        },
+        "required_level": 95
+    },
+    {
+        "id": 137,
+        "name": "神王护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 8,
+            "crit_damage": 0.12
+        },
+        "required_level": 100
+    },
+    {
+        "id": 1049,
+        "name": "雷霆法杖",
+        "type": "weapon",
+        "base_stats": {
+            "attack": 14
+        },
+        "required_level": 100
+    },
+    {
+        "id": 1050,
+        "name": "雷霆兜帽",
+        "type": "helmet",
+        "base_stats": {
+            "defense": 7,
+            "max_hp": 14,
+            "max_mana": 7
+        },
+        "required_level": 100
+    },
+    {
+        "id": 1051,
+        "name": "雷霆法袍",
+        "type": "armor",
+        "base_stats": {
+            "defense": 13,
+            "max_hp": 15,
+            "max_mana": 14
+        },
+        "required_level": 100
+    },
+    {
+        "id": 1052,
+        "name": "雷霆护手",
+        "type": "gloves",
+        "base_stats": {
+            "defense": 7,
+            "max_mana": 7
+        },
+        "required_level": 100
+    },
+    {
+        "id": 1053,
+        "name": "雷霆长靴",
+        "type": "boots",
+        "base_stats": {
+            "defense": 7,
+            "max_hp": 7
+        },
+        "required_level": 100
+    },
+    {
+        "id": 1054,
+        "name": "雷霆腰带",
+        "type": "belt",
+        "base_stats": {
+            "max_hp": 14,
+            "max_mana": 7
+        },
+        "required_level": 100
+    },
+    {
+        "id": 1055,
+        "name": "雷霆指环",
+        "type": "ring",
+        "base_stats": {
+            "attack": 7
+        },
+        "required_level": 100
+    },
+    {
+        "id": 1056,
+        "name": "雷霆护符",
+        "type": "amulet",
+        "base_stats": {
+            "attack": 8
+        },
+        "required_level": 100
+    }
+]

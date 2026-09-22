@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 // 只读取种子定义，不启动应用、不连接数据库，也不读取任何密钥。
 $root = dirname(__DIR__);
+require_once $root.'/app/Support/Game/FixedEquipmentStats.php';
 $items = require $root.'/database/seeders/Game/Data/items.php';
 $destination = $argv[1] ?? $root.'/storage/app/item-art/catalogue.json';
 $catalogue = [];

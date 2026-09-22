@@ -37,7 +37,8 @@ class CombatRewardCalculator
         }
 
         return [
-            (int) ($totalExperience * $rewardMultiplier),
+            // Spawned monsters already include the difficulty reward multiplier.
+            (int) $totalExperience,
             (int) ($totalCopper * $rewardMultiplier),
         ];
     }

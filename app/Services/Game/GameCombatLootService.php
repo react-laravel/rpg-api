@@ -130,48 +130,12 @@ class GameCombatLootService
         }
 
         $quality = $itemData['quality'];
-        $qualityMultiplier = GameItem::QUALITY_MULTIPLIERS[$quality] ?? 1.0;
-        $stats = [];
+        $stats = $definition->base_stats ?? [];
 
-        // 按部位分类过滤基础属性
-        $equipmentCategory = $this->getEquipmentStatCategory($definition->type);
-        /** @var array<string, mixed> $baseStatsArr */
-        $baseStatsArr = $definition->base_stats ?? [];
-        $filteredBaseStats = $equipmentCategory !== null
-            ? $this->filterBaseStatsByCategory($baseStatsArr, $equipmentCategory)
-            : $baseStatsArr;
-        foreach ($filteredBaseStats as $stat => $value) {
-            if (! is_numeric($value)) {
-                continue;
-            }
-
-            $scaledValue = (float) $value * $qualityMultiplier * (0.8 + rand(0, 40) / 100);
-            $statValue = in_array($stat, ['crit_rate', 'crit_damage'], true)
-                ? round($scaledValue, 4)
-                : ($scaledValue > 0 ? max(1, (int) round($scaledValue)) : (int) round($scaledValue));
-
-            if ($statValue !== 0 && $statValue !== 0.0) {
-                $stats[$stat] = $statValue;
-            }
-        }
-
-        // Affixes and sockets
+        // Combat stats are fixed by definition; quality only affects sockets and value.
         $affixes = [];
         $sockets = 0;
         if ($quality !== 'common') {
-            $affixCount = match ($quality) {
-                'magic' => rand(1, 2),
-                'rare' => rand(2, 3),
-                'legendary' => rand(3, 4),
-                'mythic' => rand(4, 5),
-                default => 0,
-            };
-
-            // 按部位分类构建词缀池
-            $possibleAffixes = $this->buildAffixPoolForCategory($equipmentCategory);
-            shuffle($possibleAffixes);
-            $affixes = array_slice($possibleAffixes, 0, $affixCount);
-
             if (in_array($definition->type, ['weapon', 'helmet', 'armor', 'gloves', 'boots', 'belt', 'ring', 'amulet'])) {
                 $sockets = match ($quality) {
                     'magic' => rand(0, 1),
@@ -261,77 +225,5 @@ class GameCombatLootService
         $character->discoverItem($definition->id);
 
         return $gem->load('definition');
-    }
-
-    /**
-     * 判断物品类型所属的属性分类
-     *
-     * @return 'defense'|'offense'|null
-     */
-    private function getEquipmentStatCategory(?string $type): ?string
-    {
-        if ($type === null) {
-            return null;
-        }
-
-        $defenseTypes = ['helmet', 'armor', 'gloves', 'boots', 'belt'];
-        $offenseTypes = ['weapon', 'ring', 'amulet'];
-
-        return in_array($type, $defenseTypes, true) ? 'defense'
-            : (in_array($type, $offenseTypes, true) ? 'offense' : null);
-    }
-
-    /**
-     * 按部位分类过滤基础属性（仅保留该类别允许的属性）
-     */
-    private function filterBaseStatsByCategory(array $baseStats, string $category): array
-    {
-        if ($baseStats === []) {
-            return [];
-        }
-
-        $allowedStats = match ($category) {
-            'defense' => config('game.defense_stat_categories', []),
-            'offense' => config('game.offense_stat_categories', []),
-            default => [],
-        };
-
-        if ($allowedStats === []) {
-            return $baseStats;
-        }
-
-        // all_stats 始终保留
-        $allowedStats[] = 'all_stats';
-
-        return array_filter($baseStats, fn (string $stat): bool => in_array($stat, $allowedStats, true), ARRAY_FILTER_USE_KEY);
-    }
-
-    /**
-     * 按部位分类构建词缀池
-     *
-     * @return array<int, array<string, int|float>>
-     */
-    private function buildAffixPoolForCategory(?string $category): array
-    {
-        $offenseAffixes = [
-            ['attack' => rand(1, 4)],
-            ['crit_rate' => rand(1, 5) / 100],
-            ['crit_damage' => rand(10, 30) / 100],
-            ['strength' => rand(1, 3)],
-            ['dexterity' => rand(1, 2)],
-            ['energy' => rand(1, 2)],
-        ];
-
-        $defenseAffixes = [
-            ['defense' => rand(1, 3)],
-            ['max_hp' => rand(2, 10)],
-            ['max_mana' => rand(1, 6)],
-        ];
-
-        return match ($category) {
-            'defense' => $defenseAffixes,
-            'offense' => $offenseAffixes,
-            default => array_merge($offenseAffixes, $defenseAffixes),
-        };
     }
 }
