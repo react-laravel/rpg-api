@@ -160,11 +160,6 @@ class GameCombatLootService
         // 发现物品
         $character->discoverItem($definition->id);
 
-        $recycled = $inventoryService->tryAutoRecycleItem($character->fresh(), $item);
-        if ($recycled !== null) {
-            return null;
-        }
-
         return $item->load('definition');
     }
 
