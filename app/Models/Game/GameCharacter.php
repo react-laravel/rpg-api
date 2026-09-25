@@ -336,7 +336,7 @@ class GameCharacter extends Model
     public function getEquippedItems(): array
     {
         $equipped = [];
-        $equipmentSlots = $this->equipment()->with('item.definition', 'item.gems')->get();
+        $equipmentSlots = $this->equipment()->with('item.definition', 'item.gems.gemDefinition')->get();
 
         /** @var GameEquipment $slot */
         foreach ($equipmentSlots as $slot) {

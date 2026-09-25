@@ -165,6 +165,14 @@ class GameItem extends GameItemDefinition
                 $array['affixes']
             );
         }
+        if (isset($array['gems']) && is_array($array['gems'])) {
+            foreach ($array['gems'] as $index => $gem) {
+                if (! is_array($gem) || isset($gem['gemDefinition']) || ! isset($gem['gem_definition'])) {
+                    continue;
+                }
+                $array['gems'][$index]['gemDefinition'] = $gem['gem_definition'];
+            }
+        }
 
         return $array;
     }
