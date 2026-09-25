@@ -367,6 +367,7 @@ class GameCombatService
             'skill_cooldowns' => $character->combat_skill_cooldowns ?? [],
             'round_regen' => $roundRegen !== [] ? $roundRegen : null,
             'shield' => $roundResult['shield'] ?? $this->summarizeActiveShield($character),
+            'pet_action' => $roundResult['pet_action'] ?? null,
             'character' => ($character->fresh() ?? $character)->toArray(),
             'combat_log_id' => $combatLog->id,
         ];
@@ -534,6 +535,7 @@ class GameCombatService
             'loot' => [],
             'skills_used' => is_array($roundResult['new_skills_aggregated'] ?? null) ? $roundResult['new_skills_aggregated'] : [],
             'shield' => $roundResult['shield'] ?? null,
+            'pet_action' => $roundResult['pet_action'] ?? null,
             'character' => $charArray,
             'current_hp' => 0,
             'current_mana' => 0,

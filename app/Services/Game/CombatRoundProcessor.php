@@ -170,7 +170,22 @@ class CombatRoundProcessor
             }
         }
 
-        $pet = $this->advanceFamiliar($character, $skillsUsedThisRound, $monstersUpdated, $hpAtRoundStart);
+        foreach ($monstersUpdated as $idx => $monster) {
+            if (! is_array($monster)) {
+                continue;
+            }
+            unset($monster['pet_swing'], $monster['pet_damage']);
+            $monstersUpdated[$idx] = $monster;
+        }
+
+        $aliveAtStart = [];
+        foreach ($hpAtRoundStart as $idx => $hp) {
+            if ((int) $hp > 0) {
+                $aliveAtStart[] = (int) $idx;
+            }
+        }
+
+        $pet = $this->advanceFamiliar($character, $skillsUsedThisRound, $monstersUpdated, $hpAtRoundStart, $aliveAtStart);
         $monstersUpdated = $pet['monsters'];
         $totalDamageDealt += $pet['damage'];
 
@@ -185,15 +200,21 @@ class CombatRoundProcessor
             }
         }
 
+        $petIsUp = $pet['bonuses']['has_charm']
+            && is_array($pet['pet'])
+            && (int) ($pet['pet']['hp'] ?? 0) > 0;
         $counter = $this->familiarCombat->applyCounterstrikes(
             $monstersUpdated,
             $charDefense,
-            $pet['bonuses']['has_charm'] ? $pet['pet'] : null
+            $pet['bonuses']['has_charm'] ? $pet['pet'] : null,
+            null,
+            $petIsUp ? $aliveAtStart : null
         );
         $petState = $counter['pet'];
         if ($pet['bonuses']['has_charm']) {
             $character->pet = $petState;
         }
+        $petAction = $this->buildPetAction($pet['action'] ?? null, $petState, (int) ($counter['pet_damage'] ?? 0));
         $incoming = $counter['player'];
         $reflected = 0;
         $manaRestored = 0;
@@ -277,6 +298,7 @@ class CombatRoundProcessor
             'round_details' => $roundDetails,
             'shield' => $this->effectApplier->summarizeShield($buffs, $shieldAbsorbed, $shieldBroke, $shieldMaxHp),
             'pet' => $character->pet,
+            'pet_action' => $petAction,
         ];
     }
 
@@ -286,12 +308,13 @@ class CombatRoundProcessor
      * @param  array<int, array<string, mixed>>  $skillsUsedThisRound
      * @param  array<int, array<string, mixed>|null>  $monstersUpdated
      * @param  array<int, int>  $hpAtRoundStart
-     * @return array{monsters: array<int, array<string, mixed>|null>, damage: int, pet: array<string, mixed>|null, bonuses: array{has_charm: bool, min_level: int, cap: int, attack_bonus: float, hp_bonus: float}}
+     * @param  list<int>  $eligibleIndexes
+     * @return array{monsters: array<int, array<string, mixed>|null>, damage: int, pet: array<string, mixed>|null, bonuses: array{has_charm: bool, min_level: int, cap: int, attack_bonus: float, hp_bonus: float}, action: array{name: string, damage: int, position: int, monster_name: string}|null}
      */
-    private function advanceFamiliar(GameCharacter $character, array $skillsUsedThisRound, array $monstersUpdated, array $hpAtRoundStart): array
+    private function advanceFamiliar(GameCharacter $character, array $skillsUsedThisRound, array $monstersUpdated, array $hpAtRoundStart, array $eligibleIndexes = []): array
     {
         $bonuses = Familiar::bonusesFromSkills($character->skills()->with('skill')->get());
-        $empty = ['monsters' => $monstersUpdated, 'damage' => 0, 'pet' => is_array($character->pet) ? $character->pet : null, 'bonuses' => $bonuses];
+        $empty = ['monsters' => $monstersUpdated, 'damage' => 0, 'pet' => is_array($character->pet) ? $character->pet : null, 'bonuses' => $bonuses, 'action' => null];
         if (! $bonuses['has_charm']) {
             return $empty;
         }
@@ -315,7 +338,7 @@ class CombatRoundProcessor
         }
 
         $before = $monstersUpdated;
-        [$monstersUpdated, $dealt] = $this->familiarCombat->attack($monstersUpdated, $pet);
+        [$monstersUpdated, $dealt, $action] = $this->familiarCombat->attack($monstersUpdated, $pet, null, $eligibleIndexes);
         if ($dealt > 0) {
             $xp = 0;
             foreach ($monstersUpdated as $idx => $monster) {
@@ -336,7 +359,27 @@ class CombatRoundProcessor
             );
         }
 
-        return ['monsters' => $monstersUpdated, 'damage' => $dealt, 'pet' => $pet, 'bonuses' => $bonuses];
+        return ['monsters' => $monstersUpdated, 'damage' => $dealt, 'pet' => $pet, 'bonuses' => $bonuses, 'action' => $action];
+    }
+
+    /**
+     * @param  array{name: string, damage: int, position: int, monster_name: string}|null  $action
+     * @param  array<string, mixed>|null  $petState
+     * @return array{name: string, damage: int, position: int|null, monster_name: string|null, damage_taken: int}|null
+     */
+    private function buildPetAction(?array $action, ?array $petState, int $damageTaken): ?array
+    {
+        if ($action === null && $damageTaken <= 0) {
+            return null;
+        }
+
+        return [
+            'name' => (string) ($action['name'] ?? $petState['name'] ?? '宝宝'),
+            'damage' => (int) ($action['damage'] ?? 0),
+            'position' => isset($action['position']) ? (int) $action['position'] : null,
+            'monster_name' => isset($action['monster_name']) ? (string) $action['monster_name'] : null,
+            'damage_taken' => $damageTaken,
+        ];
     }
 
     /**

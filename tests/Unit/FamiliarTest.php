@@ -66,5 +66,59 @@ class FamiliarTest extends TestCase
         $this->assertSame(3, $dealt);
         $this->assertSame(8, $updated[0]['hp']);
         $this->assertSame(5, $updated[1]['hp']);
+        $this->assertSame(3, $updated[1]['pet_swing']);
+    }
+
+    public function test_pet_still_swings_when_the_player_already_killed_the_monster(): void
+    {
+        $combat = new FamiliarCombat;
+        $monsters = [
+            ['hp' => 0, 'defense' => 0, 'damage_taken' => 8, 'name' => '史莱姆'],
+        ];
+
+        [$updated, $dealt, $action] = $combat->attack(
+            $monsters,
+            ['hp' => 10, 'attack' => 3, 'name' => '小兽'],
+            null,
+            [0]
+        );
+
+        $this->assertSame(0, $dealt);
+        $this->assertSame(0, $updated[0]['hp']);
+        $this->assertSame(8, $updated[0]['damage_taken']);
+        $this->assertSame(3, $updated[0]['pet_swing']);
+        $this->assertArrayNotHasKey('pet_damage', $updated[0]);
+        $this->assertSame(3, $action['damage']);
+        $this->assertSame('史莱姆', $action['monster_name']);
+    }
+
+    public function test_a_monster_killed_this_pulse_still_hits_the_living_pet(): void
+    {
+        $combat = new FamiliarCombat;
+        $monsters = [
+            ['hp' => 0, 'attack' => 4],
+        ];
+
+        $result = $combat->applyCounterstrikes($monsters, 0, ['hp' => 10, 'name' => '小兽'], fn (): bool => true, [0]);
+
+        $this->assertSame(0, $result['player']);
+        $this->assertSame(4, $result['pet_damage']);
+        $this->assertSame(6, $result['pet']['hp']);
+    }
+
+    public function test_a_dead_monster_does_not_counter_without_a_pet_on_the_field(): void
+    {
+        $combat = new FamiliarCombat;
+
+        $result = $combat->applyCounterstrikes(
+            [['hp' => 0, 'attack' => 4]],
+            0,
+            ['hp' => 10],
+            fn (): bool => true
+        );
+
+        $this->assertSame(0, $result['player']);
+        $this->assertSame(0, $result['pet_damage']);
+        $this->assertSame(10, $result['pet']['hp']);
     }
 }

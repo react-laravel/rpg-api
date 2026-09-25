@@ -35,9 +35,7 @@ class GameCombatLogService
             'copper_gained' => $roundResult['copper_gained'] ?? 0,
             'duration_seconds' => 0,
             'skills_used' => $roundResult['skills_used_this_round'],
-            'potion_used' => $roundRegen !== null && $roundRegen !== []
-                ? ['after' => $roundRegen]
-                : null,
+            'potion_used' => $this->encodePotionUsed($roundRegen, $roundResult['pet_action'] ?? null),
             // 角色属性
             'character_level' => $roundDetails['character']['level'] ?? $character->level,
             'character_attack' => $roundDetails['character']['attack'] ?? null,
@@ -117,6 +115,7 @@ class GameCombatLogService
             'monster_counter_damage' => $roundResult['round_details']['damage']['monster_counter'] ?? null,
             'difficulty_tier' => $character->difficulty_tier ?? 0,
             'difficulty_multiplier' => $difficulty['reward'],
+            'potion_used' => $this->encodePotionUsed(null, $roundResult['pet_action'] ?? null),
         ]);
     }
 
@@ -167,6 +166,7 @@ class GameCombatLogService
             'skills_used' => $log->skills_used,
             'loot_dropped' => $log->loot_dropped,
             'round_regen' => $this->formatRoundRegen($log->potion_used),
+            'pet_action' => $this->petActionFromPotion($log->potion_used),
             'created_at' => $log->created_at->toISOString(),
             // 角色属性
             'character' => [
@@ -264,6 +264,7 @@ class GameCombatLogService
                 'experience_gained' => $log->experience_gained,
                 'loot_dropped' => $log->loot_dropped,
                 'round_regen' => $this->formatRoundRegen($log->potion_used),
+                'pet_action' => $this->petActionFromPotion($log->potion_used),
                 'duration_seconds' => $log->duration_seconds,
                 'created_at' => $log->created_at->toISOString(),
                 // 角色属性
@@ -316,6 +317,44 @@ class GameCombatLogService
         $after = $potionUsed['after'] ?? null;
 
         return is_array($after) && $after !== [] ? $after : null;
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $roundRegen
+     * @param  array<string, mixed>|null  $petAction
+     * @return array<string, mixed>|null
+     */
+    private function encodePotionUsed(?array $roundRegen, ?array $petAction): ?array
+    {
+        $payload = [];
+        if (is_array($roundRegen) && $roundRegen !== []) {
+            $payload['after'] = $roundRegen;
+        }
+        if (is_array($petAction) && $petAction !== []) {
+            $payload['pet'] = $petAction;
+        }
+
+        return $payload === [] ? null : $payload;
+    }
+
+    /**
+     * @return array{name: string, damage: int, position: int|null, monster_name: string|null, damage_taken: int}|null
+     */
+    private function petActionFromPotion(mixed $potionUsed): ?array
+    {
+        if (! is_array($potionUsed) || ! is_array($potionUsed['pet'] ?? null)) {
+            return null;
+        }
+
+        $pet = $potionUsed['pet'];
+
+        return [
+            'name' => (string) ($pet['name'] ?? '宝宝'),
+            'damage' => (int) ($pet['damage'] ?? 0),
+            'position' => isset($pet['position']) ? (int) $pet['position'] : null,
+            'monster_name' => isset($pet['monster_name']) ? (string) $pet['monster_name'] : null,
+            'damage_taken' => (int) ($pet['damage_taken'] ?? 0),
+        ];
     }
 
     /**
