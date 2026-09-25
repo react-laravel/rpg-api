@@ -32,6 +32,8 @@ Route::prefix('rpg')->group(function (): void {
 
     Route::get('/skills', [SkillController::class, 'index']);
     Route::post('/skills/learn', [SkillController::class, 'learn']);
+    Route::get('/gems/shop', [GemController::class, 'shop']);
+    Route::post('/gems/buy', [GemController::class, 'buy']);
     Route::post('/gems/socket', [GemController::class, 'socket']);
     Route::post('/gems/unsocket', [GemController::class, 'unsocket']);
     Route::get('/gems', [GemController::class, 'getGems']);

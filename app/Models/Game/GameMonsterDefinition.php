@@ -141,6 +141,17 @@ class GameMonsterDefinition extends Model
                 'quality' => $quality,
                 'level' => $this->equipmentDropLevel($characterLevel),
             ];
+
+            return $loot;
+        }
+
+        $gemChance = (float) config('game.gem_drop.chance', 0.05);
+        if ($this->rollChance($gemChance, 'gem_drop_chance_multiplier')) {
+            $loot['item'] = [
+                'type' => 'gem',
+                'quality' => 'common',
+                'level' => max(1, $characterLevel),
+            ];
         }
 
         return $loot;

@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api\Game;
 
+use App\Exceptions\GameException;
 use App\Http\Controllers\Concerns\CharacterConcern;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Game\SocketGemRequest;
 use App\Http\Requests\Game\UnsocketGemRequest;
 use App\Models\Game\GameItem;
 use App\Models\Game\GameItemGem;
+use App\Services\Game\BuyGem;
 use App\Services\Game\GameInventoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,7 +25,39 @@ class GemController extends Controller
 
     public function __construct(
         private readonly GameInventoryService $inventoryService,
+        private readonly BuyGem $buyGem,
     ) {}
+
+    /**
+     * 宝石商店：固定的几种宝石和铜币价格。
+     */
+    public function shop(): JsonResponse
+    {
+        return $this->success([
+            'gems' => $this->buyGem->catalog(),
+        ]);
+    }
+
+    /**
+     * 用铜币买一颗宝石放进背包。
+     */
+    public function buy(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'definition_id' => 'required|integer|min:1',
+        ], [
+            'definition_id.required' => '宝石不能为空',
+        ]);
+
+        try {
+            $character = $this->getCharacter($request);
+            $result = $this->buyGem->buy($character, (int) $validated['definition_id']);
+
+            return $this->success($result, '购买成功');
+        } catch (GameException $e) {
+            return $this->error($e->getMessage());
+        }
+    }
 
     /**
      * 镶嵌宝石到装备
