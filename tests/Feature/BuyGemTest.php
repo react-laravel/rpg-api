@@ -25,7 +25,7 @@ class BuyGemTest extends TestCase
             'user_id' => 7,
             'name' => '买宝石',
             'level' => 3,
-            'copper' => 80,
+            'copper' => 800,
         ]);
 
         $result = app(BuyGem::class)->buy($character, $definition->id);

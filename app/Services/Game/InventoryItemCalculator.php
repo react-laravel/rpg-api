@@ -300,7 +300,9 @@ class InventoryItemCalculator
             $price += (int) ($this->statValueToPricePoints($stat, (float) $value) * $pricePerPoint);
         }
 
-        return max(1, $price);
+        $multiplier = max(1, (int) config('game.gem_price_multiplier', 10));
+
+        return max(1, $price * $multiplier);
     }
 
     private function resolveStatPrice(string $stat): float
