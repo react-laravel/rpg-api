@@ -154,7 +154,8 @@ class InventorySaleService
     public function sellItemsAtOrBelowValue(GameCharacter $character, int $maxValue): array
     {
         $items = $this->getSellableInventoryItems($character)
-            ->filter(fn (GameItem $item) => $item->calculateSellPrice() <= $maxValue);
+            ->filter(fn (GameItem $item) => $item->definition?->type !== 'gem'
+                && $item->calculateSellPrice() <= $maxValue);
 
         return $this->sellItems($character, $items);
     }
@@ -287,7 +288,6 @@ class InventorySaleService
         $result = $character->items()
             ->where('is_in_storage', false)
             ->where('quality', $quality)
-            ->whereHas('definition', fn ($query) => $query->where('type', '!=', 'gem'))
             ->with('definition')
             ->get();
 
@@ -302,7 +302,6 @@ class InventorySaleService
         /** @var \Illuminate\Database\Eloquent\Collection<int, GameItem> $result */
         $result = $character->items()
             ->where('is_in_storage', false)
-            ->whereHas('definition', fn ($query) => $query->where('type', '!=', 'gem'))
             ->with('definition')
             ->get();
 
