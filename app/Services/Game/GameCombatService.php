@@ -533,7 +533,7 @@ class GameCombatService
             'experience_gained' => 0,
             'copper_gained' => 0,
             'loot' => [],
-            'skills_used' => is_array($roundResult['new_skills_aggregated'] ?? null) ? $roundResult['new_skills_aggregated'] : [],
+            'skills_used' => is_array($roundResult['skills_used_this_round'] ?? null) ? $roundResult['skills_used_this_round'] : [],
             'shield' => $roundResult['shield'] ?? null,
             'pet_action' => $roundResult['pet_action'] ?? null,
             'character' => $charArray,

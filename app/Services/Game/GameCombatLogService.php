@@ -92,7 +92,7 @@ class GameCombatLogService
             'copper_gained' => 0,
             // Carbon returns fractional seconds; the database column stores whole seconds.
             'duration_seconds' => max(0, (int) $startTime->diffInSeconds(now())),
-            'skills_used' => $roundResult['new_skills_aggregated'],
+            'skills_used' => $roundResult['skills_used_this_round'] ?? [],
             // 角色属性
             'character_level' => $character->level,
             'character_attack' => $charStats['attack'] ?? null,

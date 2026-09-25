@@ -496,14 +496,37 @@ class CombatRoundProcessor
      */
     private function aggregateSkillsUsed(array $skillsUsedThisRound, array $skillsUsedAggregated): array
     {
-        $aggregated = $skillsUsedAggregated;
+        // 存回去的是 0、1、2 下标。下一拍必须按 skill_id 合并，否则每次施放都会再长出一个图标。
+        $aggregated = [];
+        foreach ($skillsUsedAggregated as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+            $id = (int) ($entry['skill_id'] ?? 0);
+            if ($id <= 0) {
+                continue;
+            }
+            if (! isset($aggregated[$id])) {
+                $aggregated[$id] = $entry;
+                $aggregated[$id]['skill_id'] = $id;
+                $aggregated[$id]['use_count'] = (int) ($entry['use_count'] ?? 0);
+
+                continue;
+            }
+            $aggregated[$id]['use_count'] += (int) ($entry['use_count'] ?? 0);
+        }
+
         foreach ($skillsUsedThisRound as $entry) {
-            $id = $entry['skill_id'];
+            $id = (int) ($entry['skill_id'] ?? 0);
+            if ($id <= 0) {
+                continue;
+            }
             if (! isset($aggregated[$id])) {
                 $aggregated[$id] = [
-                    'skill_id' => $entry['skill_id'],
-                    'name' => $entry['name'],
+                    'skill_id' => $id,
+                    'name' => $entry['name'] ?? '',
                     'icon' => RpgAssetIconNormalizer::normalizeSkill($entry['icon'] ?? null),
+                    'effect_key' => $entry['effect_key'] ?? null,
                     'use_count' => 0,
                 ];
             }
