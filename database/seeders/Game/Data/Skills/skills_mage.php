@@ -99,7 +99,7 @@ return SkillTreeBuilder::merge(
         'effects' => ['bounce_count' => 2, 'bounce_ratio' => 1.3],
     ]),
     SkillTreeBuilder::line('mage', 'defensive', 'mage_charm', 'charm-light', '诱惑之光', [
-        'description' => '召一只宝宝。它每拍随机打一只怪，击杀给它自己经验，最高 7 级。倒下后再次施放会原等级复活。怪物反击在你和宝宝之间随机选目标',
+        'description' => '召一只宝宝。它每拍随机打一只怪，击杀给它自己经验，最高 7 级。倒下后再次施放会按召唤等级重新召出。怪物反击在你和宝宝之间随机选目标',
         'base_damage' => 0,
         'mana_cost' => 12,
         'cooldown' => 8,

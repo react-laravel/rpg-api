@@ -78,14 +78,17 @@ final class Familiar
     {
         $existing ??= [];
         $alive = (int) ($existing['hp'] ?? 0) > 0;
-        $level = max(1, (int) ($existing['level'] ?? 1));
-        if (! $alive) {
-            $level = max($level, $minLevel);
+        if ($alive) {
+            $level = max(1, (int) ($existing['level'] ?? 1));
+            $experience = (int) ($existing['experience'] ?? 0);
+        } else {
+            $level = max(1, $minLevel);
+            $experience = 0;
         }
         $level = min($cap, $level);
         $pet = [
             'level' => $level,
-            'experience' => (int) ($existing['experience'] ?? 0),
+            'experience' => $experience,
             'hp' => $alive ? (int) $existing['hp'] : 0,
             'max_hp' => (int) ($existing['max_hp'] ?? 0),
         ];

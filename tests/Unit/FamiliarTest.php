@@ -36,6 +36,21 @@ class FamiliarTest extends TestCase
         $this->assertSame(4, $alive['hp']);
     }
 
+    public function test_a_downed_pet_is_summoned_again_at_the_floor(): void
+    {
+        $revived = Familiar::summon(['level' => 7, 'experience' => 12, 'hp' => 0, 'max_hp' => 34], 15, 1, 7, 0, 0);
+
+        $this->assertSame(1, $revived['level']);
+        $this->assertSame(0, $revived['experience']);
+        $this->assertSame($revived['max_hp'], $revived['hp']);
+        $this->assertSame(10, $revived['max_hp']);
+
+        $withFloor = Familiar::summon(['level' => 7, 'experience' => 12, 'hp' => 0, 'max_hp' => 34], 15, 3, 9, 0, 0);
+
+        $this->assertSame(3, $withFloor['level']);
+        $this->assertSame(0, $withFloor['experience']);
+    }
+
     public function test_counterstrikes_pick_player_or_pet_per_monster_and_stop_at_zero_hp(): void
     {
         $combat = new FamiliarCombat;

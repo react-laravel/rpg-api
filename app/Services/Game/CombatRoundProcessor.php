@@ -303,7 +303,7 @@ class CombatRoundProcessor
     }
 
     /**
-     * 学会诱惑之光后，宝宝跟着打架。召唤只在它倒下时把血补满，击杀经验记在它自己身上。
+     * 学会诱惑之光后，宝宝跟着打架。它倒下后再次施放按召唤等级重新召出，击杀经验记在它自己身上。
      *
      * @param  array<int, array<string, mixed>>  $skillsUsedThisRound
      * @param  array<int, array<string, mixed>|null>  $monstersUpdated
