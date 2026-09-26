@@ -8,6 +8,7 @@ use App\Http\Requests\Game\LearnSkillRequest;
 use App\Models\Game\GameCharacter;
 use App\Models\Game\GameCharacterSkill;
 use App\Models\Game\GameSkillDefinition;
+use App\Support\Game\SkillLearnCost;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -51,6 +52,7 @@ class SkillController extends Controller
             /** @var GameCharacterSkill|null $characterSkill */
             $characterSkill = $learnedBySkillId->get($def->id);
             $row['is_learned'] = $characterSkill !== null;
+            $row['learn_copper_cost'] = SkillLearnCost::copper($def);
             if ($characterSkill !== null) {
                 $row['character_skill_id'] = $characterSkill->id;
                 $row['slot_index'] = $characterSkill->slot_index;
@@ -61,7 +63,7 @@ class SkillController extends Controller
 
         return $this->success([
             'skills' => $skills->values()->all(),
-            'skill_points' => $character->skill_points,
+            'copper' => (int) $character->copper,
         ]);
     }
 
@@ -89,7 +91,7 @@ class SkillController extends Controller
             return $this->error($prereqError);
         }
 
-        $cost = $skill->skill_points_cost ?? 1;
+        $cost = SkillLearnCost::copper($skill);
         $isSpecRespec = false;
 
         if ((int) ($skill->node_tier ?? 0) === 2 && $skill->spec_branch && $skill->skill_line) {
@@ -109,8 +111,8 @@ class SkillController extends Controller
             }
         }
 
-        if (! $isSpecRespec && $character->skill_points < $cost) {
-            return $this->error("技能点不足，学习该技能需要 {$cost} 点");
+        if (! $isSpecRespec && (int) $character->copper < $cost) {
+            return $this->error("铜币不足，学习该技能需要 {$cost} 铜币");
         }
 
         $characterSkill = $character->skills()->create([
@@ -119,13 +121,22 @@ class SkillController extends Controller
         $characterSkill->load('skill');
 
         if ($cost > 0) {
-            $character->skill_points -= $cost;
-            $character->save();
+            $paid = GameCharacter::query()
+                ->whereKey($character->id)
+                ->where('copper', '>=', $cost)
+                ->decrement('copper', $cost);
+            if ($paid === 0) {
+                $characterSkill->delete();
+
+                return $this->error("铜币不足，学习该技能需要 {$cost} 铜币");
+            }
+            $character->refresh();
         }
 
         return $this->success([
             'character' => $character,
-            'skill_points' => $character->skill_points,
+            'copper' => (int) $character->copper,
+            'learn_copper_cost' => $isSpecRespec ? 0 : $cost,
             'character_skill' => $characterSkill,
             'respec' => $isSpecRespec,
         ], $isSpecRespec ? '专精切换成功' : '技能学习成功');
