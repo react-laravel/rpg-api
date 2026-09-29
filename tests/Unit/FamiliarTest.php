@@ -10,7 +10,7 @@ class FamiliarTest extends TestCase
 {
     public function test_form_follows_character_level_and_kills_raise_pet_level(): void
     {
-        $this->assertSame('小兽', Familiar::profile(15)['name']);
+        $this->assertSame('灵狐', Familiar::profile(15)['name']);
         $this->assertSame('石像', Familiar::profile(40)['name']);
         $this->assertSame('狼妖', Familiar::profile(80)['name']);
 
@@ -93,7 +93,7 @@ class FamiliarTest extends TestCase
 
         [$updated, $dealt, $action] = $combat->attack(
             $monsters,
-            ['hp' => 10, 'attack' => 3, 'name' => '小兽'],
+            ['hp' => 10, 'attack' => 3, 'name' => '灵狐'],
             null,
             [0]
         );
@@ -114,7 +114,7 @@ class FamiliarTest extends TestCase
             ['hp' => 0, 'attack' => 4],
         ];
 
-        $result = $combat->applyCounterstrikes($monsters, 0, ['hp' => 10, 'name' => '小兽'], fn (): bool => true, [0]);
+        $result = $combat->applyCounterstrikes($monsters, 0, ['hp' => 10, 'name' => '灵狐'], fn (): bool => true, [0]);
 
         $this->assertSame(0, $result['player']);
         $this->assertSame(4, $result['pet_damage']);

@@ -62,7 +62,7 @@ final class Familiar
             return ['form' => 'statue', 'name' => '石像', 'attack' => 4, 'hp' => 16];
         }
 
-        return ['form' => 'whelp', 'name' => '小兽', 'attack' => 2, 'hp' => 10];
+        return ['form' => 'whelp', 'name' => '灵狐', 'attack' => 2, 'hp' => 10];
     }
 
     public static function xpToAdvance(int $level): int
