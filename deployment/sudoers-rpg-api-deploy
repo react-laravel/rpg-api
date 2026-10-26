@@ -1,0 +1,1 @@
+rpg-api-deploy ALL=(root) NOPASSWD: /usr/bin/systemctl restart dogeow-test-rpg-fpm.service, /usr/bin/systemctl restart dogeow-test-rpg-queue.service, /usr/bin/systemctl restart dogeow-test-rpg-reverb.service
